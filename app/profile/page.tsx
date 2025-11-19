@@ -10,6 +10,8 @@ interface Profile {
   full_name: string | null
   avatar_url: string | null
   bio: string | null
+  can_change_username: boolean
+  username_changed_at: string | null
 }
 
 export default function ProfilePage() {
@@ -18,6 +20,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [editingUsername, setEditingUsername] = useState(false)
+  const [username, setUsername] = useState('')
   const [fullName, setFullName] = useState('')
   const [bio, setBio] = useState('')
   const router = useRouter()
@@ -42,6 +46,7 @@ export default function ProfilePage() {
     
     if (data) {
       setProfile(data)
+      setUsername(data.username)
       setFullName(data.full_name || '')
       setBio(data.bio || '')
     }
@@ -57,6 +62,14 @@ export default function ProfilePage() {
       }
 
       const file = e.target.files[0]
+      console.log('File selected:', file.name, file.size) // ADD THIS
+ 
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB')
+        return
+      }
+
       const fileExt = file.name.split('.').pop()
       const filePath = `${user.id}/avatar.${fileExt}`
 
@@ -89,33 +102,66 @@ export default function ProfilePage() {
     }
   }
 
+  const checkUsernameAvailable = async (newUsername: string) => {
+    if (newUsername === profile?.username) return true
+    
+    const { data } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', newUsername)
+      .single()
+    
+    return !data
+  }
+
   const updateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        full_name: fullName,
-        bio: bio,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id)
+    try {
+      // If username changed, check if available
+      if (username !== profile?.username) {
+        const available = await checkUsernameAvailable(username)
+        if (!available) {
+          alert('Username already taken')
+          setSaving(false)
+          return
+        }
+      }
 
-    if (error) {
-      alert('Error updating profile: ' + error.message)
-    } else {
-      alert('Profile updated!')
-      loadProfile(user.id)
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          username: username,
+          full_name: fullName,
+          bio: bio,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+
+      if (error) {
+        if (error.message.includes('can only be changed once')) {
+          alert('Username can only be changed once and you have already changed it.')
+        } else {
+          alert('Error updating profile: ' + error.message)
+        }
+      } else {
+        alert('Profile updated!')
+        setEditingUsername(false)
+        loadProfile(user.id)
+      }
+    } catch (error: any) {
+      alert('Error: ' + error.message)
     }
 
     setSaving(false)
   }
 
   const getAvatarUrl = (path: string | null) => {
-    if (!path) return null
-    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-    return data.publicUrl
+  if (!path) return null
+  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+  // Add timestamp to prevent caching
+  return data.publicUrl + '?t=' + new Date().getTime()
   }
 
   if (loading) {
@@ -192,13 +238,50 @@ export default function ProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Username
                 </label>
-                <input
-                  type="text"
-                  value={profile?.username || ''}
-                  disabled
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
-                />
-                <p className="text-xs text-gray-500 mt-1">Username cannot be changed</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    disabled={!editingUsername}
+                    className={`flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      !editingUsername ? 'bg-gray-100' : ''
+                    }`}
+                    minLength={3}
+                    maxLength={30}
+                    pattern="[a-z0-9_]+"
+                  />
+                  {profile?.can_change_username && !editingUsername && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingUsername(true)}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {editingUsername && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUsername(profile?.username || '')
+                        setEditingUsername(false)
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+                {profile?.can_change_username ? (
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠️ Username can only be changed once!
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Username was changed on {new Date(profile?.username_changed_at || '').toLocaleDateString()}
+                  </p>
+                )}
               </div>
 
               <div>
