@@ -4,33 +4,54 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export default function Login() {
+export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
+  const [fullName, setFullName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
 
-    const { error } = await supabase.auth.signInWithPassword({
+    // Check if username is available
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', username)
+      .single()
+
+    if (existingProfile) {
+      setMessage('Username already taken')
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          username,
+          full_name: fullName
+        }
+      }
     })
-    
+
     if (error) {
       setMessage(error.message)
     } else {
-      router.push('/dashboard')
+      setMessage('Check your email to confirm your account!')
     }
     
     setLoading(false)
   }
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignup = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -47,10 +68,10 @@ export default function Login() {
           <Link href="/" className="text-center block">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Pronia</h1>
           </Link>
-          <p className="text-center text-gray-600 mb-8">Welcome back</p>
+          <p className="text-center text-gray-600 mb-8">Create your account</p>
           
           <button
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignup}
             className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition mb-4 flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -67,14 +88,45 @@ export default function Login() {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              <span className="px-2 bg-white text-gray-500">Or sign up with email</span>
             </div>
           </div>
           
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+                Username *
+              </label>
+              <input
+                type="text"
+                placeholder="pianoplayer123"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                minLength={3}
+                maxLength={30}
+                pattern="[a-z0-9_]+"
+              />
+              <p className="text-xs text-gray-500 mt-1">3-30 characters, letters, numbers, and underscores only</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name (optional)
+              </label>
+              <input
+                type="text"
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email *
               </label>
               <input
                 type="email"
@@ -88,7 +140,7 @@ export default function Login() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Password *
               </label>
               <input
                 type="password"
@@ -102,7 +154,11 @@ export default function Login() {
             </div>
 
             {message && (
-              <div className="p-3 rounded-lg text-sm bg-red-50 text-red-800">
+              <div className={`p-3 rounded-lg text-sm ${
+                message.includes('Check') 
+                  ? 'bg-green-50 text-green-800' 
+                  : 'bg-red-50 text-red-800'
+              }`}>
                 {message}
               </div>
             )}
@@ -112,13 +168,13 @@ export default function Login() {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              {loading ? 'Logging in...' : 'Log In'}
+              {loading ? 'Creating account...' : 'Sign Up'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <Link href="/signup" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-              Don't have an account? Sign up
+            <Link href="/login" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              Already have an account? Log in
             </Link>
           </div>
         </div>

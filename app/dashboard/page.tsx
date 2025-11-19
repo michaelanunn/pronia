@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface Piece {
   id: string
@@ -28,15 +29,28 @@ export default function Dashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
         router.push('/login')
       } else {
-        setUser(user)
-        loadPieces(user.id)
+        setUser(session.user)
+        loadPieces(session.user.id)
         setLoading(false)
       }
     })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setUser(session.user)
+        loadPieces(session.user.id)
+      } else {
+        router.push('/login')
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [router])
 
   const loadPieces = async (userId: string) => {
@@ -120,7 +134,12 @@ export default function Dashboard() {
           <div className="flex justify-between items-center h-16">
             <h1 className="text-2xl font-bold text-gray-900">Pronia</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user?.email}</span>
+              <Link href="/explore" className="text-gray-600 hover:text-gray-900">
+                Explore
+              </Link>
+              <Link href="/profile" className="text-gray-600 hover:text-gray-900">
+                Profile
+              </Link>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
