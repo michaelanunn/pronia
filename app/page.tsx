@@ -1,6 +1,34 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function Home() {
+  const router = useRouter()
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    checkSession()
+  }, [])
+
+  const checkSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    setChecking(false)
+  }
+
+  const handleStartTracking = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (session) {
+      // Already logged in, go to dashboard
+      router.push('/dashboard')
+    } else {
+      // Not logged in, go to login
+      router.push('/login')
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700">
       <div className="text-center text-white px-4">
@@ -13,12 +41,13 @@ export default function Home() {
         <p className="text-lg mb-12 text-gray-200 max-w-md mx-auto">
           The practice journal built by pianists, for pianists.
         </p>
-        <Link
-          href="/login"
-          className="inline-block bg-white text-blue-700 px-10 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition shadow-2xl"
+        <button
+          onClick={handleStartTracking}
+          disabled={checking}
+          className="inline-block bg-white text-blue-700 px-10 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition shadow-2xl disabled:opacity-50"
         >
-          Start Tracking →
-        </Link>
+          {checking ? 'Loading...' : 'Start Tracking →'}
+        </button>
       </div>
     </div>
   )

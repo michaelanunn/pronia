@@ -9,6 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -99,6 +100,19 @@ export default function Login() {
                 required
                 minLength={6}
               />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              />
+              <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+                Keep me signed in
+              </label>
             </div>
 
             {message && (

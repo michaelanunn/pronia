@@ -111,11 +111,11 @@ export default function Explore() {
               <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">Pronia</h1>
             </Link>
             <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+              <Link href="/" className="text-gray-600 hover:text-gray-900">
                 Dashboard
               </Link>
               <Link href="/profile" className="text-gray-600 hover:text-gray-900">
-                Profile
+                Profile 
               </Link>
             </div>
           </div>

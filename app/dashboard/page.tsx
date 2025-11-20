@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [pieces, setPieces] = useState<Piece[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
+  const [editingPiece, setEditingPiece] = useState<string | null>(null)
   const [newPiece, setNewPiece] = useState({
     title: '',
     composer: '',
@@ -67,31 +68,70 @@ export default function Dashboard() {
     }
   }
 
-  const addPiece = async (e: React.FormEvent) => {
+  const handlePieceSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const { error } = await supabase
-      .from('pieces')
-      .insert([
-        {
-          ...newPiece,
-          user_id: user.id
-        }
-      ])
-    
-    if (error) {
-      alert('Error adding piece: ' + error.message)
+    if (editingPiece) {
+      // Update existing piece
+      const { error } = await supabase
+        .from('pieces')
+        .update({
+          title: newPiece.title,
+          composer: newPiece.composer,
+          difficulty: newPiece.difficulty,
+          status: newPiece.status,
+          notes: newPiece.notes
+        })
+        .eq('id', editingPiece)
+      
+      if (error) {
+        alert('Error updating piece: ' + error.message)
+      } else {
+        resetForm()
+        loadPieces(user.id)
+      }
     } else {
-      setNewPiece({
-        title: '',
-        composer: '',
-        difficulty: 1,
-        status: 'learning',
-        notes: ''
-      })
-      setShowAddForm(false)
-      loadPieces(user.id)
+      // Add new piece
+      const { error } = await supabase
+        .from('pieces')
+        .insert([
+          {
+            ...newPiece,
+            user_id: user.id
+          }
+        ])
+      
+      if (error) {
+        alert('Error adding piece: ' + error.message)
+      } else {
+        resetForm()
+        loadPieces(user.id)
+      }
     }
+  }
+
+  const resetForm = () => {
+    setNewPiece({
+      title: '',
+      composer: '',
+      difficulty: 1,
+      status: 'learning',
+      notes: ''
+    })
+    setEditingPiece(null)
+    setShowAddForm(false)
+  }
+
+  const handleEditPiece = (piece: Piece) => {
+    setNewPiece({
+      title: piece.title,
+      composer: piece.composer,
+      difficulty: piece.difficulty,
+      status: piece.status,
+      notes: piece.notes || ''
+    })
+    setEditingPiece(piece.id)
+    setShowAddForm(true)
   }
 
   const deletePiece = async (id: string) => {
@@ -132,7 +172,9 @@ export default function Dashboard() {
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Pronia</h1>
+            <Link href="/">
+              <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">Pronia</h1>
+            </Link>
             <div className="flex items-center gap-4">
               <Link href="/explore" className="text-gray-600 hover:text-gray-900">
                 Explore
@@ -158,7 +200,13 @@ export default function Dashboard() {
             <p className="text-gray-600 mt-1">{pieces.length} pieces total</p>
           </div>
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (showAddForm && editingPiece) {
+                resetForm()
+              } else {
+                setShowAddForm(!showAddForm)
+              }
+            }}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
           >
             {showAddForm ? 'Cancel' : '+ Add Piece'}
@@ -167,8 +215,10 @@ export default function Dashboard() {
 
         {showAddForm && (
           <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h3 className="text-xl font-bold mb-4">Add New Piece</h3>
-            <form onSubmit={addPiece} className="space-y-4">
+            <h3 className="text-xl font-bold mb-4">
+              {editingPiece ? 'Edit Piece' : 'Add New Piece'}
+            </h3>
+            <form onSubmit={handlePieceSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -250,7 +300,7 @@ export default function Dashboard() {
                 type="submit"
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
               >
-                Add Piece
+                {editingPiece ? 'Update Piece' : 'Add Piece'}
               </button>
             </form>
           </div>
@@ -265,7 +315,11 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {pieces.map((piece) => (
-              <div key={piece.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+              <div 
+                key={piece.id} 
+                className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
+                onClick={() => handleEditPiece(piece)}
+              >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
                     <h3 className="font-bold text-lg text-gray-900 mb-1">
@@ -274,7 +328,10 @@ export default function Dashboard() {
                     <p className="text-gray-600 text-sm">{piece.composer}</p>
                   </div>
                   <button
-                    onClick={() => deletePiece(piece.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deletePiece(piece.id)
+                    }}
                     className="text-red-500 hover:text-red-700 text-sm"
                   >
                     Delete
