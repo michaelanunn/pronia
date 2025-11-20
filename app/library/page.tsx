@@ -186,7 +186,7 @@ export default function Library() {
                 <div
                   key={piece.id}
                   className="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group cursor-pointer"
-                  onClick={() => addToRepertoire(piece)}
+                  onClick={() => router.push(`/pieces/${piece.id}`)}
                 >
                   {/* Sheet Music Thumbnail */}
                   <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
@@ -207,7 +207,13 @@ export default function Library() {
                     
                     {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition flex items-center justify-center">
-                      <button className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 px-6 py-2 rounded-full font-semibold transform scale-90 group-hover:scale-100 transition">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          addToRepertoire(piece)
+                        }}
+                        className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 px-6 py-2 rounded-full font-semibold transform scale-90 group-hover:scale-100 transition"
+                      >
                         + Add to Repertoire
                       </button>
                     </div>
