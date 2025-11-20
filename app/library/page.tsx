@@ -54,7 +54,6 @@ export default function Library() {
       return
     }
 
-    // Check if already added
     const { data: existing } = await supabase
       .from('pieces')
       .select('id')
@@ -68,7 +67,6 @@ export default function Library() {
       return
     }
 
-    // Add to user's pieces
     const { error } = await supabase
       .from('pieces')
       .insert([{
@@ -96,11 +94,6 @@ export default function Library() {
     
     return matchesSearch && matchesDifficulty
   })
-
-  const difficultyLabels = [
-    'Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate',
-    'Advanced', 'Very Advanced', 'Expert', 'Master', 'Virtuoso'
-  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -132,7 +125,6 @@ export default function Library() {
           <p className="text-gray-600">Browse and add pieces to your repertoire</p>
         </div>
 
-        {/* Search & Filters */}
         <div className="mb-8 space-y-4">
           <input
             type="text"
@@ -169,7 +161,6 @@ export default function Library() {
           </div>
         </div>
 
-        {/* Pieces Grid */}
         {loading ? (
           <div className="text-center py-12">
             <div className="text-lg">Loading...</div>
@@ -186,9 +177,8 @@ export default function Library() {
                 <div
                   key={piece.id}
                   className="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden group cursor-pointer"
-                  onClick={() => router.push(`/pieces/${piece.id}`)}
+                  onClick={() => addToRepertoire(piece)}
                 >
-                  {/* Sheet Music Thumbnail */}
                   <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
                     {piece.image_url ? (
                       <img
@@ -205,26 +195,17 @@ export default function Library() {
                       </div>
                     )}
                     
-                    {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition flex items-center justify-center">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          addToRepertoire(piece)
-                        }}
-                        className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 px-6 py-2 rounded-full font-semibold transform scale-90 group-hover:scale-100 transition"
-                      >
+                      <button className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 px-6 py-2 rounded-full font-semibold transform scale-90 group-hover:scale-100 transition">
                         + Add to Repertoire
                       </button>
                     </div>
 
-                    {/* Difficulty badge */}
                     <div className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
                       Level {piece.difficulty}
                     </div>
                   </div>
 
-                  {/* Info */}
                   <div className="p-4">
                     <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">
                       {piece.title}
