@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Profile {
   id: string
@@ -34,6 +35,7 @@ interface Composer {
   nationality: string | null
   era: string | null
   bio: string | null
+  image_url: string | null
   piece_count?: number
 }
 
@@ -47,28 +49,27 @@ export default function Explore() {
   const [loading, setLoading] = useState(true)
   const [currentUsername, setCurrentUsername] = useState<string>('')
 
-useEffect(() => {
-  const loadCurrentUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', session.user.id)
-        .single()
-      
-      if (profileData) {
-        setCurrentUsername(profileData.username)
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (profileData) {
+          setCurrentUsername(profileData.username)
+        }
       }
     }
-  }
-  
-  loadCurrentUser()
-  loadProfiles()
-  loadPieces()
-  loadComposers()
-}, [])
-
+    
+    loadCurrentUser()
+    loadProfiles()
+    loadPieces()
+    loadComposers()
+  }, [])
 
   const loadProfiles = async () => {
     const { data: profilesData } = await supabase
@@ -164,7 +165,6 @@ useEffect(() => {
     return matchesSearch && matchesEra
   })
 
-  // Get unique eras for filter
   const eras = ['all', ...new Set(composers.map(c => c.era).filter(Boolean) as string[])]
 
   return (
@@ -172,19 +172,27 @@ useEffect(() => {
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/dashboard">
-              <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">Pronia</h1>
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <Image src="/logo.png" alt="Pronia" width={32} height={32} />
+              <h1 className="text-2xl font-bold text-gray-900">Pronia</h1>
             </Link>
-<div className="flex items-center gap-4">
-  <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-    Dashboard
-  </Link>
-  {currentUsername && (
-    <Link href={`/u/${currentUsername}`} className="text-gray-600 hover:text-gray-900">
-      Profile
-    </Link>
-  )}
-</div>          </div>
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+                Dashboard
+              </Link>
+              <Link href="/library" className="text-gray-600 hover:text-gray-900">
+                Library
+              </Link>
+              <Link href="/metronome" className="text-gray-600 hover:text-gray-900">
+                Metronome
+              </Link>
+              {currentUsername && (
+                <Link href={`/u/${currentUsername}`} className="text-gray-600 hover:text-gray-900">
+                  Profile
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       </nav>
 
@@ -192,7 +200,6 @@ useEffect(() => {
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Explore</h2>
           
-          {/* Tabs */}
           <div className="flex gap-6 mb-6 border-b border-gray-200">
             <button
               onClick={() => setActiveTab('composers')}
@@ -226,7 +233,6 @@ useEffect(() => {
             </button>
           </div>
 
-          {/* Search */}
           <div className="relative mb-4">
             <input
               type="text"
@@ -254,7 +260,6 @@ useEffect(() => {
             </svg>
           </div>
 
-          {/* Era Filter for Composers */}
           {activeTab === 'composers' && (
             <div className="flex gap-2 flex-wrap">
               {eras.map((era) => (
@@ -279,7 +284,6 @@ useEffect(() => {
             <div className="text-lg">Loading...</div>
           </div>
         ) : activeTab === 'composers' ? (
-          // Composers Tab
           filteredComposers.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500">No composers found</p>
@@ -294,15 +298,27 @@ useEffect(() => {
                     href={`/composer/${composer.id}`}
                     className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition text-center"
                   >
-                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                      {composer.name.charAt(0)}
-                    </div>
+                    {composer.image_url ? (
+                      <img
+                        src={composer.image_url}
+                        alt={composer.name}
+                        className="w-20 h-20 mx-auto mb-4 rounded-full object-cover border-2 border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                        {composer.name.charAt(0)}
+                      </div>
+                    )}
                     
                     <h3 className="font-bold text-lg text-gray-900 mb-1">
                       {composer.name}
                     </h3>
                     
-                    <div className="space-y-1 text-sm text-gray-500 mb-3">
+                    {composer.full_name && (
+                      <p className="text-gray-600 text-sm mb-2">{composer.full_name}</p>
+                    )}
+                    
+                    <div className="space-y-1 text-sm text-gray-500">
                       {composer.birth_year && composer.death_year ? (
                         <p>{composer.birth_year}–{composer.death_year}</p>
                       ) : composer.birth_year ? (
@@ -315,7 +331,7 @@ useEffect(() => {
                       )}
                     </div>
                     
-                    <div className="text-sm text-gray-500">
+                    <div className="mt-4 text-sm text-gray-500">
                       {composer.piece_count || 0} pieces
                     </div>
                   </Link>
@@ -324,7 +340,6 @@ useEffect(() => {
             </div>
           )
         ) : activeTab === 'pieces' ? (
-          // Pieces Tab
           filteredPieces.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500">No pieces found</p>
@@ -341,9 +356,7 @@ useEffect(() => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Difficulty:</span>
-                      <span className="font-medium">
-                        Level {piece.difficulty}
-                      </span>
+                      <span className="font-medium">Level {piece.difficulty}</span>
                     </div>
                     
                     <div className="flex items-center justify-between text-sm">
@@ -373,7 +386,6 @@ useEffect(() => {
             </div>
           )
         ) : (
-          // Users Tab
           filteredProfiles.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500">No users found</p>
