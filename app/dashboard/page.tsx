@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Piece {
   id: string
@@ -15,6 +16,7 @@ interface Piece {
 }
 
 export default function Dashboard() {
+  const [username, setUsername] = useState<string>('')
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [pieces, setPieces] = useState<Piece[]>([])
@@ -30,18 +32,18 @@ export default function Dashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         router.push('/login')
       } else {
         setUser(session.user)
+        checkOnboarding(session.user.id)
         loadPieces(session.user.id)
+        loadProfile(session.user.id)
         setLoading(false)
       }
     })
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setUser(session.user)
@@ -53,6 +55,18 @@ export default function Dashboard() {
 
     return () => subscription.unsubscribe()
   }, [router])
+
+  const checkOnboarding = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('id', userId)
+      .single()
+    
+    if (data && !data.onboarding_completed) {
+      router.push('/onboarding')
+    }
+  }
 
   const loadPieces = async (userId: string) => {
     const { data, error } = await supabase
@@ -68,11 +82,22 @@ export default function Dashboard() {
     }
   }
 
+  const loadProfile = async (userId: string) => {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userId)
+      .single()
+    
+    if (profileData) {
+      setUsername(profileData.username)
+    }
+  }
+
   const handlePieceSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (editingPiece) {
-      // Update existing piece
       const { error } = await supabase
         .from('pieces')
         .update({
@@ -91,7 +116,6 @@ export default function Dashboard() {
         loadPieces(user.id)
       }
     } else {
-      // Add new piece
       const { error } = await supabase
         .from('pieces')
         .insert([
@@ -172,14 +196,18 @@ export default function Dashboard() {
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/">
-              <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">Pronia</h1>
+            <Link href="/" className="flex items-center gap-2">
+              <Image src="/logo.png" alt="Pronia" width={32} height={32} />
+              <h1 className="text-2xl font-bold text-gray-900">Pronia</h1>
             </Link>
             <div className="flex items-center gap-4">
               <Link href="/explore" className="text-gray-600 hover:text-gray-900">
                 Explore
               </Link>
-              <Link href="/profile" className="text-gray-600 hover:text-gray-900">
+              <Link href="/metronome" className="text-gray-600 hover:text-gray-900">
+                Metronome
+              </Link>
+              <Link href={`/u/${username}`} className="text-gray-600 hover:text-gray-900">
                 Profile
               </Link>
               <button

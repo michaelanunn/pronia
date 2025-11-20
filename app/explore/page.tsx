@@ -45,12 +45,30 @@ export default function Explore() {
   const [searchQuery, setSearchQuery] = useState('')
   const [eraFilter, setEraFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
+  const [currentUsername, setCurrentUsername] = useState<string>('')
 
-  useEffect(() => {
-    loadProfiles()
-    loadPieces()
-    loadComposers()
-  }, [])
+useEffect(() => {
+  const loadCurrentUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', session.user.id)
+        .single()
+      
+      if (profileData) {
+        setCurrentUsername(profileData.username)
+      }
+    }
+  }
+  
+  loadCurrentUser()
+  loadProfiles()
+  loadPieces()
+  loadComposers()
+}, [])
+
 
   const loadProfiles = async () => {
     const { data: profilesData } = await supabase
@@ -157,15 +175,16 @@ export default function Explore() {
             <Link href="/dashboard">
               <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">Pronia</h1>
             </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                Dashboard
-              </Link>
-              <Link href="/profile" className="text-gray-600 hover:text-gray-900">
-                Profile
-              </Link>
-            </div>
-          </div>
+<div className="flex items-center gap-4">
+  <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+    Dashboard
+  </Link>
+  {currentUsername && (
+    <Link href={`/u/${currentUsername}`} className="text-gray-600 hover:text-gray-900">
+      Profile
+    </Link>
+  )}
+</div>          </div>
         </div>
       </nav>
 
