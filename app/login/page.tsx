@@ -48,11 +48,11 @@ export default function Login() {
           <Link href="/" className="text-center block">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Pronia</h1>
           </Link>
-          <p className="text-center text-gray-600 mb-8">Welcome back</p>
+          <p className="text-center text-gray-800 mb-8">Welcome back</p>
           
           <button
             onClick={handleGoogleLogin}
-            className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition mb-4 flex items-center justify-center gap-2"
+            className="w-full bg-white border-2 border-gray-300 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-50 transition mb-4 flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -68,13 +68,13 @@ export default function Login() {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              <span className="px-2 bg-white text-gray-700">Or continue with email</span>
             </div>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Email
               </label>
               <input
@@ -82,21 +82,21 @@ export default function Login() {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Password
               </label>
               <input
                 type="password"
-                placeholder="••••••••"
+                placeholder="********"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                 required
                 minLength={6}
               />
@@ -110,7 +110,7 @@ export default function Login() {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
-              <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+              <label htmlFor="remember" className="ml-2 text-sm text-gray-800">
                 Keep me signed in
               </label>
             </div>
