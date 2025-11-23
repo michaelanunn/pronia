@@ -121,7 +121,7 @@ export default function SimplePieceCard({
                 <p className="text-xs text-blue-600">Click to open PDF →</p>
               </div>
             ) : mounted ? (
-              <div className="w-full h-full flex items-center justify-center overflow-hidden">
+              <div className="relative w-full h-full flex items-center justify-center overflow-hidden z-0">
                 <Document
                   file={piece.pdf_url}
                   onLoadSuccess={onDocumentLoadSuccess}
@@ -142,14 +142,14 @@ export default function SimplePieceCard({
               </div>
             ) : null}
             
-            {/* Overlay on hover */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
+            {/* Overlay on hover - with pointer-events-none so it doesn't block canvas */}
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center pointer-events-none z-10">
               <Eye className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
 
             {/* Delete PDF button */}
             {showDeleteConfirm ? (
-              <div className="absolute top-2 right-2 bg-white rounded-lg shadow-lg p-2 space-y-2 z-20">
+              <div className="absolute top-2 right-2 bg-white rounded-lg shadow-lg p-2 space-y-2 z-20 pointer-events-auto">
                 <p className="text-xs text-gray-700 mb-2">Delete PDF?</p>
                 <div className="flex gap-2">
                   <button
@@ -178,7 +178,7 @@ export default function SimplePieceCard({
                   e.stopPropagation()
                   setShowDeleteConfirm(true)
                 }}
-                className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-20"
+                className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-20 pointer-events-auto"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
