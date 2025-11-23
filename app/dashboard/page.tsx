@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FileText } from 'lucide-react'
+import SimplePieceCard from '@/components/SimplePieceCard'
 
 interface Piece {
   id: string
@@ -762,18 +763,25 @@ const [uploadingPdf, setUploadingPdf] = useState(false)
         )}
 
         {pieces.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-500 text-lg mb-4">
-              No pieces yet. Add your first piece to get started!
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pieces.map((piece) => (
-              <div 
-                key={piece.id} 
-                className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
-                onClick={() => handleEditPiece(piece)}
+  <div className="bg-white rounded-lg shadow p-12 text-center">
+    <p className="text-gray-500 text-lg mb-4">
+      No pieces yet. Add your first piece to get started!
+    </p>
+  </div>
+) : (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {pieces.map((piece) => (
+      <SimplePieceCard
+        key={piece.id}
+        piece={piece}
+        onEdit={handleEditPiece}
+        onDelete={deletePiece}
+        onPdfUpload={handlePiecePdfUpload}
+        uploading={uploadingPieceId === piece.id}
+      />
+    ))}
+  </div>
+)}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
@@ -820,36 +828,48 @@ const [uploadingPdf, setUploadingPdf] = useState(false)
 
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     {piece.pdf_url ? (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">PDF:</span>
-                        <a
-                          href={piece.pdf_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Open score
-                        </a>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          window.open(piece.pdf_url || '#', '_blank', 'noopener,noreferrer')
+                        }}
+                        className="w-full flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800 hover:bg-blue-100 transition"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          <span className="font-semibold">Open PDF</span>
+                        </div>
+                        <span className="text-xs text-blue-700">Tap to view</span>
+                      </button>
                     ) : (
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <span className="text-sm text-gray-600">No PDF attached yet</span>
-                        <label
-                          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 cursor-pointer"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {uploadingPieceId === piece.id ? 'Uploading...' : 'Upload PDF'}
-                          <input
-                            type="file"
-                            accept="application/pdf"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              if (file) handlePiecePdfUpload(piece.id, file)
-                            }}
-                          />
-                        </label>
+                      <div
+                        className="w-full rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50 transition cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const input = document.getElementById(`pdf-upload-${piece.id}`) as HTMLInputElement | null
+                          input?.click()
+                        }}
+                      >
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <FileText className="w-4 h-4" />
+                            <span>No PDF attached yet</span>
+                          </div>
+                          <span className="text-sm font-semibold text-blue-700">
+                            {uploadingPieceId === piece.id ? 'Uploading...' : 'Upload PDF'}
+                          </span>
+                        </div>
+                        <input
+                          id={`pdf-upload-${piece.id}`}
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handlePiecePdfUpload(piece.id, file)
+                          }}
+                        />
                       </div>
                     )}
                   </div>
