@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -34,14 +33,14 @@ export default function UploadPage() {
       // Upload PDF to storage
       const fileName = `${user.id}/${Date.now()}-${file.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('pdfs')
+        .from('scores')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('pdfs')
+        .from('scores')
         .getPublicUrl(fileName);
 
       // Insert piece record
@@ -49,7 +48,7 @@ export default function UploadPage() {
         .from('pieces')
         .insert({
           title: file.name.replace('.pdf', ''),
-          composer: 'Unknown', // User can edit this later
+          composer: 'Unknown',
           pdf_url: publicUrl,
           user_id: user.id
         })
