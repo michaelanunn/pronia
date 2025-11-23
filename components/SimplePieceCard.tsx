@@ -1,13 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { Document, Page, pdfjs } from 'react-pdf'
-import { FileText, Trash2, Eye, Upload, AlertCircle } from 'lucide-react'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
+import { useState, useMemo, useEffect } from 'react'
+import { Trash2, Eye, Upload, AlertCircle } from 'lucide-react'
+import dynamic from 'next/dynamic'
 
-// CRITICAL: Use HTTPS explicitly
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+// Import react-pdf components with SSR disabled
+const Document = dynamic(
+  () => import('react-pdf').then((mod) => mod.Document),
+  { ssr: false }
+)
+const Page = dynamic(
+  () => import('react-pdf').then((mod) => mod.Page),
+  { ssr: false }
+)
 
 interface SimplePieceCardProps {
   piece: {
@@ -25,11 +30,6 @@ interface SimplePieceCardProps {
   uploading: boolean
 }
 
-const difficultyLabels = [
-  'Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate',
-  'Advanced', 'Very Advanced', 'Expert', 'Master', 'Virtuoso'
-]
-
 export default function SimplePieceCard({ 
   piece, 
   onEdit, 
@@ -41,6 +41,26 @@ export default function SimplePieceCard({
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pdfLoading, setPdfLoading] = useState(true)
   const [pdfError, setPdfError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Only run on client side
+  useEffect(() => {
+    setMounted(true)
+    
+    // Configure PDF.js worker on client side only
+    if (typeof window !== 'undefined') {
+      import('react-pdf').then((pdfjs) => {
+        pdfjs.pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.pdfjs.version}/build/pdf.worker.min.mjs`
+      })
+    }
+  }, [])
+
+  // Memoize options
+  const pdfOptions = useMemo(() => ({
+    cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
+    cMapPacked: true,
+    standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
+  }), [])
 
   const handlePdfUploadClick = () => {
     const input = document.createElement('input')
@@ -100,7 +120,7 @@ export default function SimplePieceCard({
                 <p className="text-xs text-gray-500 mb-3">{pdfError}</p>
                 <p className="text-xs text-blue-600">Click to open PDF →</p>
               </div>
-            ) : (
+            ) : mounted ? (
               <div className="w-full h-full flex items-center justify-center overflow-hidden">
                 <Document
                   file={piece.pdf_url}
@@ -108,11 +128,7 @@ export default function SimplePieceCard({
                   onLoadError={onDocumentLoadError}
                   loading={null}
                   error={null}
-                  options={{
-                    cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
-                    cMapPacked: true,
-                    standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
-                  }}
+                  options={pdfOptions}
                 >
                   <Page
                     pageNumber={1}
@@ -124,7 +140,7 @@ export default function SimplePieceCard({
                   />
                 </Document>
               </div>
-            )}
+            ) : null}
             
             {/* Overlay on hover */}
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">

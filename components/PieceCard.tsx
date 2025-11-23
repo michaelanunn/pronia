@@ -1,14 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { useState, useMemo, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
+import dynamic from 'next/dynamic';
 
-// CRITICAL: Use HTTPS explicitly
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Import react-pdf with SSR disabled
+const Document = dynamic(
+  () => import('react-pdf').then((mod) => mod.Document),
+  { ssr: false }
+);
+const Page = dynamic(
+  () => import('react-pdf').then((mod) => mod.Page),
+  { ssr: false }
+);
 
 interface PieceCardProps {
   id: string;
@@ -21,6 +26,23 @@ export default function PieceCard({ id, title, composer, pdfUrl }: PieceCardProp
   const [numPages, setNumPages] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    if (typeof window !== 'undefined') {
+      import('react-pdf').then((pdfjs) => {
+        pdfjs.pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.pdfjs.version}/build/pdf.worker.min.mjs`;
+      });
+    }
+  }, []);
+
+  const pdfOptions = useMemo(() => ({
+    cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
+    cMapPacked: true,
+    standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
+  }), []);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -30,7 +52,7 @@ export default function PieceCard({ id, title, composer, pdfUrl }: PieceCardProp
   }
 
   function onDocumentLoadError(error: Error) {
-    console.error('❌ PDF error:', error.message, 'URL:', pdfUrl);
+    console.error('❌ PDF error:', error.message);
     setLoading(false);
     setError(error.message);
   }
@@ -55,18 +77,14 @@ export default function PieceCard({ id, title, composer, pdfUrl }: PieceCardProp
               <div className="text-sm text-red-600 mb-1">Failed to load PDF</div>
               <div className="text-xs text-gray-500">{error}</div>
             </div>
-          ) : (
+          ) : mounted ? (
             <Document
               file={pdfUrl}
               onLoadSuccess={onDocumentLoadSuccess}
               onLoadError={onDocumentLoadError}
               loading={null}
               error={null}
-              options={{
-                cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
-                cMapPacked: true,
-                standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
-              }}
+              options={pdfOptions}
             >
               <Page
                 pageNumber={1}
@@ -77,7 +95,7 @@ export default function PieceCard({ id, title, composer, pdfUrl }: PieceCardProp
                 error={null}
               />
             </Document>
-          )}
+          ) : null}
         </div>
 
         {/* Info */}
