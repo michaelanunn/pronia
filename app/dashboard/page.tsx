@@ -30,9 +30,10 @@ export default function Dashboard() {
   const [username, setUsername] = useState<string>('')
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [pieces, setPieces] = useState<Piece[]>([])
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [editingPiece, setEditingPiece] = useState<string | null>(null)
+const [pieces, setPieces] = useState<Piece[]>([])
+const [showAddForm, setShowAddForm] = useState(false)
+const [editingPiece, setEditingPiece] = useState<string | null>(null)
+const [uploadingPieceId, setUploadingPieceId] = useState<string | null>(null)
   
   // Search library state
   const [searchMode, setSearchMode] = useState<'library' | 'custom'>('library')
@@ -204,6 +205,56 @@ const [uploadingPdf, setUploadingPdf] = useState(false)
       alert('Error uploading PDF: ' + error.message)
     } finally {
       setUploadingPdf(false)
+    }
+  }
+
+  const handlePiecePdfUpload = async (pieceId: string, file: File) => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file.')
+      return
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      alert('File too large. Please upload a PDF under 25MB.')
+      return
+    }
+
+    try {
+      setUploadingPieceId(pieceId)
+      const filePath = `${user.id}/${Date.now()}-${file.name}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('scores')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'application/pdf'
+        })
+
+      if (uploadError) throw uploadError
+
+      const { data } = supabase.storage.from('scores').getPublicUrl(filePath)
+      const publicUrl = data?.publicUrl
+
+      const { error: updateError } = await supabase
+        .from('pieces')
+        .update({ pdf_url: publicUrl || null })
+        .eq('id', pieceId)
+
+      if (updateError) throw updateError
+
+      setPieces((prev) =>
+        prev.map((p) => (p.id === pieceId ? { ...p, pdf_url: publicUrl || null } : p))
+      )
+    } catch (error: any) {
+      alert('Error uploading PDF: ' + error.message)
+    } finally {
+      setUploadingPieceId(null)
     }
   }
 
@@ -767,20 +818,41 @@ const [uploadingPdf, setUploadingPdf] = useState(false)
                     </div>
                   )}
 
-                  {piece.pdf_url && (
-                    <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between text-sm">
-                      <span className="text-gray-600">PDF:</span>
-                      <a
-                        href={piece.pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Open score
-                      </a>
-                    </div>
-                  )}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    {piece.pdf_url ? (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">PDF:</span>
+                        <a
+                          href={piece.pdf_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Open score
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <span className="text-sm text-gray-600">No PDF attached yet</span>
+                        <label
+                          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {uploadingPieceId === piece.id ? 'Uploading...' : 'Upload PDF'}
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) handlePiecePdfUpload(piece.id, file)
+                            }}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
