@@ -1,277 +1,269 @@
-"use client";
+'use client'
 
-import { useState, useRef, type ChangeEvent } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { Upload, File, X, Check } from "lucide-react";
+import { useState, useEffect } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Upload, X, Search } from 'lucide-react'
 
-interface PDFUploadProps {
-  pieceId?: string;
-  pieceName?: string;
-  onUploadComplete?: (pdfId: string) => void;
+interface Composer {
+  id: string
+  name: string
 }
 
-export default function PDFUpload({
-  pieceId,
-  pieceName,
-  onUploadComplete,
-}: PDFUploadProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadComplete, setUploadComplete] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isAnnotated, setIsAnnotated] = useState(false);
-  const [notes, setNotes] = useState("");
+interface PDFUploadProps {
+  onUploadComplete: () => void
+}
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const supabase = createClientComponentClient();
+export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
+  const [file, setFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [notes, setNotes] = useState('')
+  const [isAnnotated, setIsAnnotated] = useState(false)
+  const [composers, setComposers] = useState<Composer[]>([])
+  const [selectedComposer, setSelectedComposer] = useState<string | null>(null)
+  const [composerSearch, setComposerSearch] = useState('')
+  const [showComposerDropdown, setShowComposerDropdown] = useState(false)
+  const supabase = createClientComponentClient()
 
-  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
+  // Fetch composers from the database
+  useEffect(() => {
+    fetchComposers()
+  }, [])
 
-    if (!selectedFile) return;
+  const fetchComposers = async () => {
+    const { data, error } = await supabase
+      .from('composers')
+      .select('id, name')
+      .order('name')
 
-    // Validate file type
-    if (selectedFile.type !== "application/pdf") {
-      setError("Please upload a PDF file");
-      return;
+    if (data && !error) {
+      setComposers(data)
     }
+  }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (selectedFile.size > maxSize) {
-      setError("File size must be less than 10MB");
-      return;
+  const filteredComposers = composers.filter(composer =>
+    composer.name.toLowerCase().includes(composerSearch.toLowerCase())
+  )
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile && selectedFile.type === 'application/pdf') {
+      setFile(selectedFile)
+    } else {
+      alert('Please select a PDF file')
     }
-
-    setFile(selectedFile);
-    setError(null);
-    setUploadComplete(false);
-  };
+  }
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      alert('Please select a file')
+      return
+    }
 
-    setUploading(true);
-    setError(null);
-    setUploadProgress(0);
+    setUploading(true)
+
     try {
-      // Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("You must be logged in to upload files");
-      }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-      const filename = `${timestamp}_${sanitizedFilename}`;
-      const filePath = `${user.id}/${filename}`;
-
-      // Upload to Supabase Storage
+      // Upload to storage
+      const timestamp = Date.now()
+      const fileName = `${user.id}/${timestamp}-${file.name}`
+      
       const { error: uploadError } = await supabase.storage
-        .from("user-pdfs")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .from('scores')
+        .upload(fileName, file)
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError
 
-      setUploadProgress(50);
-
-      // Create database record
-      const { data: pdfRecord, error: dbError } = await supabase
-        .from("user_pdfs")
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('user_pdfs')
         .insert({
           user_id: user.id,
-          piece_id: pieceId || null,
-          filename: filename,
+          filename: `${timestamp}-${file.name}`,
           original_filename: file.name,
-          file_path: filePath,
+          file_path: fileName,
           file_size: file.size,
           notes: notes || null,
           is_annotated: isAnnotated,
+          composer_id: selectedComposer || null
         })
-        .select()
-        .single();
 
-      if (dbError) throw dbError;
+      if (dbError) throw dbError
 
-      setUploadProgress(100);
-      setUploadComplete(true);
-
-      // Call callback if provided
-      if (onUploadComplete && pdfRecord) {
-        onUploadComplete(pdfRecord.id);
-      }
-
-      // Reset after 2 seconds
-      setTimeout(() => {
-        setFile(null);
-        setNotes("");
-        setIsAnnotated(false);
-        setUploadComplete(false);
-        setUploadProgress(0);
-      }, 2000);
-    } catch (err) {
-      console.error("Upload error:", err);
-      const message = err instanceof Error ? err.message : "Failed to upload file";
-      setError(message);
+      // Reset form
+      setFile(null)
+      setNotes('')
+      setIsAnnotated(false)
+      setSelectedComposer(null)
+      setComposerSearch('')
+      
+      alert('PDF uploaded successfully!')
+      onUploadComplete()
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload PDF')
     } finally {
-      setUploading(false);
+      setUploading(false)
     }
-  };
+  }
 
-  const clearFile = () => {
-    setFile(null);
-    setError(null);
-    setUploadComplete(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
+  const selectedComposerData = composers.find(c => c.id === selectedComposer)
 
   return (
-    <div className="w-full max-w-xl mx-auto">
-      <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-6">
-        {/* Header */}
-        {pieceName && (
-          <div className="mb-4 pb-4 border-b">
-            <p className="text-sm text-gray-600">Uploading for:</p>
-            <p className="font-semibold text-gray-900">{pieceName}</p>
-          </div>
-        )}
+    <div className="bg-white rounded-lg border p-6">
+      <h3 className="font-semibold text-lg mb-4">Upload PDF</h3>
 
-        {/* File Input Area */}
-        <div className="mb-4">
+      {/* File Input */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select PDF File
+        </label>
+        <div className="relative">
           <input
-            ref={fileInputRef}
             type="file"
-            accept="application/pdf"
-            onChange={handleFileSelect}
+            accept=".pdf"
+            onChange={handleFileChange}
             className="hidden"
             id="pdf-upload"
           />
-
-          {!file ? (
-            <label
-              htmlFor="pdf-upload"
-              className="flex flex-col items-center justify-center cursor-pointer py-8"
-            >
-              <Upload className="w-12 h-12 text-gray-400 mb-3" />
-              <p className="text-sm font-medium text-gray-700 mb-1">
-                Click to upload PDF
-              </p>
-              <p className="text-xs text-gray-500">Max file size: 10MB</p>
-            </label>
-          ) : (
-            <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <File className="w-8 h-8 text-red-500 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {file.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              </div>
-              {!uploading && (
+          <label
+            htmlFor="pdf-upload"
+            className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition"
+          >
+            {file ? (
+              <div className="flex items-center space-x-2">
+                <Upload className="w-5 h-5 text-blue-600" />
+                <span className="text-sm text-gray-700">{file.name}</span>
                 <button
-                  onClick={clearFile}
-                  className="ml-2 p-1 hover:bg-gray-200 rounded-full flex-shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setFile(null)
+                  }}
+                  className="text-red-500 hover:text-red-700"
                 >
-                  <X className="w-5 h-5 text-gray-600" />
+                  <X className="w-4 h-4" />
                 </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Upload className="w-5 h-5 text-gray-400" />
+                <span className="text-sm text-gray-500">Click to upload PDF</span>
+              </div>
+            )}
+          </label>
+        </div>
+      </div>
+
+      {/* Composer Search */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Link to Composer (Optional)
+        </label>
+        <div className="relative">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search for a composer..."
+              value={composerSearch}
+              onChange={(e) => {
+                setComposerSearch(e.target.value)
+                setShowComposerDropdown(true)
+              }}
+              onFocus={() => setShowComposerDropdown(true)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Selected Composer Display */}
+          {selectedComposerData && (
+            <div className="mt-2 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+              <span className="text-sm text-blue-900 font-medium">
+                Selected: {selectedComposerData.name}
+              </span>
+              <button
+                onClick={() => {
+                  setSelectedComposer(null)
+                  setComposerSearch('')
+                }}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Dropdown */}
+          {showComposerDropdown && composerSearch && !selectedComposer && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {filteredComposers.length > 0 ? (
+                filteredComposers.map((composer) => (
+                  <button
+                    key={composer.id}
+                    onClick={() => {
+                      setSelectedComposer(composer.id)
+                      setComposerSearch(composer.name)
+                      setShowComposerDropdown(false)
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm transition"
+                  >
+                    {composer.name}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-sm text-gray-500">
+                  No composers found
+                </div>
               )}
             </div>
           )}
         </div>
-
-        {/* Upload Progress */}
-        {uploading && (
-          <div className="mb-4">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-600 mt-1 text-center">
-              Uploading... {uploadProgress}%
-            </p>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {uploadComplete && (
-          <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-center space-x-2">
-            <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-            <p className="text-sm text-green-800">PDF uploaded successfully!</p>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Optional Fields */}
-        {file && !uploading && !uploadComplete && (
-          <div className="space-y-3 mb-4">
-            {/* Annotated Checkbox */}
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isAnnotated}
-                onChange={(e) => setIsAnnotated(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded"
-              />
-              <span className="text-sm text-gray-700">
-                This PDF has my annotations/markings
-              </span>
-            </label>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes (optional)
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add notes about this PDF (fingerings, tempo markings, etc.)"
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Upload Button */}
-        {file && !uploadComplete && (
-          <button
-            onClick={handleUpload}
-            disabled={uploading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {uploading ? "Uploading..." : "Upload PDF"}
-          </button>
-        )}
       </div>
 
-      {/* Mobile Instructions */}
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-500">
-          On mobile? Tap &quot;Upload PDF&quot; to choose from your device or use your camera to scan sheet music
-        </p>
+      {/* Notes */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Notes (Optional)
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Add any notes about this PDF..."
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </div>
+
+      {/* Annotated Checkbox */}
+      <div className="mb-4">
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isAnnotated}
+            onChange={(e) => setIsAnnotated(e.target.checked)}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <span className="text-sm text-gray-700">This PDF is annotated</span>
+        </label>
+      </div>
+
+      {/* Upload Button */}
+      <button
+        onClick={handleUpload}
+        disabled={!file || uploading}
+        className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+      >
+        {uploading ? 'Uploading...' : 'Upload PDF'}
+      </button>
+
+      {/* Close dropdown when clicking outside */}
+      {showComposerDropdown && (
+        <div
+          className="fixed inset-0 z-0"
+          onClick={() => setShowComposerDropdown(false)}
+        />
+      )}
     </div>
-  );
+  )
 }

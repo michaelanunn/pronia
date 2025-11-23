@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { FileText, Download, Trash2, Music, Calendar, FileCheck } from 'lucide-react'
+import { FileText, Search, X } from 'lucide-react'
 import PDFUpload from '@/components/PDFUpload'
+import PDFPreviewCard from '@/components/PDFPreviewCard'
 
 interface UserPDF {
   id: string
@@ -25,7 +26,13 @@ export default function MyPDFsPage() {
   const [pdfs, setPdfs] = useState<UserPDF[]>([])
   const [loading, setLoading] = useState(true)
   const [showUpload, setShowUpload] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedComposer, setSelectedComposer] = useState<string | null>(null)
   const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    console.log('PDFs state:', pdfs);
+  }, [pdfs]);
 
   useEffect(() => {
     fetchPDFs()
@@ -58,12 +65,11 @@ export default function MyPDFsPage() {
   const downloadPDF = async (pdf: UserPDF) => {
     try {
       const { data, error } = await supabase.storage
-        .from('user-pdfs')
+        .from('scores')
         .download(pdf.file_path)
 
       if (error) throw error
 
-      // Create download link
       const url = URL.createObjectURL(data)
       const a = document.createElement('a')
       a.href = url
@@ -82,14 +88,12 @@ export default function MyPDFsPage() {
     if (!confirm(`Delete "${pdf.original_filename}"?`)) return
 
     try {
-      // Delete from storage
       const { error: storageError } = await supabase.storage
-        .from('user-pdfs')
+        .from('scores')
         .remove([pdf.file_path])
 
       if (storageError) throw storageError
 
-      // Delete from database
       const { error: dbError } = await supabase
         .from('user_pdfs')
         .delete()
@@ -97,7 +101,6 @@ export default function MyPDFsPage() {
 
       if (dbError) throw dbError
 
-      // Refresh list
       fetchPDFs()
     } catch (error) {
       console.error('Error deleting PDF:', error)
@@ -105,20 +108,28 @@ export default function MyPDFsPage() {
     }
   }
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-  }
+  // Get unique composers from PDFs
+  const composers = Array.from(
+    new Set(
+      pdfs
+        .filter(pdf => pdf.piece?.composer_name)
+        .map(pdf => pdf.piece!.composer_name)
+    )
+  ).sort()
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    })
-  }
+  // Filter PDFs based on search and composer
+  const filteredPdfs = pdfs.filter(pdf => {
+    const matchesSearch = 
+      pdf.original_filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pdf.piece?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pdf.piece?.composer_name.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesComposer = 
+      !selectedComposer || 
+      pdf.piece?.composer_name === selectedComposer
+
+    return matchesSearch && matchesComposer
+  })
 
   if (loading) {
     return (
@@ -140,7 +151,7 @@ export default function MyPDFsPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         
         {/* Upload Button */}
         <button
@@ -162,108 +173,118 @@ export default function MyPDFsPage() {
           </div>
         )}
 
+        {/* Search and Filter */}
+        <div className="mb-6 space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by filename, piece title, or composer..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Composer Filter */}
+          {composers.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Filter by Composer:</p>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setSelectedComposer(null)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                    selectedComposer === null
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  All Composers
+                </button>
+                {composers.map((composer) => (
+                  <button
+                    key={composer}
+                    onClick={() => setSelectedComposer(composer)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                      selectedComposer === composer
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {composer}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg border">
             <p className="text-sm text-gray-600">Total PDFs</p>
             <p className="text-2xl font-bold text-gray-900">{pdfs.length}</p>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <p className="text-sm text-gray-600">Annotated</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {pdfs.filter(p => p.is_annotated).length}
-            </p>
+            <p className="text-sm text-gray-600">Filtered</p>
+            <p className="text-2xl font-bold text-gray-900">{filteredPdfs.length}</p>
+          </div>
+          <div className="bg-white p-4 rounded-lg border">
+            <p className="text-sm text-gray-600">Composers</p>
+            <p className="text-2xl font-bold text-gray-900">{composers.length}</p>
           </div>
         </div>
 
-        {/* PDFs List */}
-        {pdfs.length === 0 ? (
+        {/* PDFs Grid */}
+        {filteredPdfs.length === 0 ? (
           <div className="bg-white rounded-lg border p-12 text-center">
             <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No PDFs uploaded yet
+              {pdfs.length === 0 ? 'No PDFs uploaded yet' : 'No matching PDFs found'}
             </h3>
             <p className="text-gray-600 mb-6">
-              Upload your annotated sheet music to access it anywhere
+              {pdfs.length === 0 
+                ? 'Upload your annotated sheet music to access it anywhere'
+                : 'Try adjusting your search or filters'
+              }
             </p>
-            <button
-              onClick={() => setShowUpload(true)}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Upload Your First PDF
-            </button>
+            {pdfs.length === 0 && (
+              <button
+                onClick={() => setShowUpload(true)}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Upload Your First PDF
+              </button>
+            )}
           </div>
         ) : (
-          <div className="space-y-3">
-            {pdfs.map((pdf) => (
-              <div
-                key={pdf.id}
-                className="bg-white rounded-lg border p-4 hover:shadow-md transition-shadow"
-              >
-                {/* PDF Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-start space-x-3 flex-1 min-w-0">
-                    <FileText className="w-10 h-10 text-red-500 flex-shrink-0 mt-1" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {pdf.original_filename}
-                      </h3>
-                      
-                      {/* Linked Piece */}
-                      {pdf.piece && (
-                        <div className="flex items-center space-x-1 text-sm text-gray-600 mt-1">
-                          <Music className="w-4 h-4" />
-                          <span className="truncate">
-                            {pdf.piece.title} - {pdf.piece.composer_name}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* File Info */}
-                      <div className="flex items-center space-x-3 text-xs text-gray-500 mt-2">
-                        <span className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3" />
-                          <span>{formatDate(pdf.uploaded_at)}</span>
-                        </span>
-                        <span>{formatFileSize(pdf.file_size)}</span>
-                        {pdf.is_annotated && (
-                          <span className="flex items-center space-x-1 text-blue-600">
-                            <FileCheck className="w-3 h-3" />
-                            <span>Annotated</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPdfs.map((pdf) => {
+              const { data } = supabase.storage
+                .from('scores')
+                .getPublicUrl(pdf.file_path);
 
-                  {/* Actions */}
-                  <div className="flex items-center space-x-2 ml-2">
-                    <button
-                      onClick={() => downloadPDF(pdf)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => deletePDF(pdf)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
+              console.log('PDF URL for', pdf.original_filename, ':', data.publicUrl);
 
-                {/* Notes */}
-                {pdf.notes && (
-                  <div className="bg-gray-50 rounded p-3 text-sm text-gray-700">
-                    <p className="font-medium text-gray-900 mb-1">Notes:</p>
-                    <p>{pdf.notes}</p>
-                  </div>
-                )}
-              </div>
-            ))}
+              return (
+                <PDFPreviewCard
+                  key={pdf.id}
+                  pdf={pdf}
+                  pdfUrl={data.publicUrl}
+                  onDownload={() => downloadPDF(pdf)}
+                  onDelete={() => deletePDF(pdf)}
+                />
+              );
+            })}
           </div>
         )}
       </div>
