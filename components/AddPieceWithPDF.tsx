@@ -34,6 +34,8 @@ export default function AddPieceWithPDF({
         .from('pieces')
         .insert({
           user_id: user.id,
+          title: pieceName,
+          composer: composerName,
           piece_library_id: pieceLibraryId,
           difficulty,
           status,
@@ -44,6 +46,7 @@ export default function AddPieceWithPDF({
 
       // Move to upload step
       setStep('upload-pdf')
+      setAdding(false)
     } catch (error) {
       console.error('Error adding piece:', error)
       alert('Failed to add piece')
@@ -60,7 +63,7 @@ export default function AddPieceWithPDF({
       <div className="max-w-2xl mx-auto p-6">
         <div className="bg-white rounded-lg border p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-2">
-            📄 Upload Your PDF (Optional)
+            Upload Your PDF (Optional)
           </h2>
           <p className="text-gray-600 mb-6">
             Do you have a PDF of <strong>{pieceName}</strong> with your annotations?

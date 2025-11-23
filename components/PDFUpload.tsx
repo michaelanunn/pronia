@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, type ChangeEvent } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Upload, File, X, Check } from "lucide-react";
 
@@ -26,7 +26,7 @@ export default function PDFUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClientComponentClient();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
 
     if (!selectedFile) return;
@@ -268,8 +268,7 @@ export default function PDFUpload({
       {/* Mobile Instructions */}
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-500">
-          📱 On mobile? Tap "Upload PDF" to choose from your device or use your
-          camera to scan sheet music
+          On mobile? Tap "Upload PDF" to choose from your device or use your camera to scan sheet music
         </p>
       </div>
     </div>
