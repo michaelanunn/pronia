@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { FileText, Download, Trash2, Music, Calendar, FileCheck } from 'lucide-react';
 
 interface PDFPreviewCardProps {
@@ -24,8 +23,6 @@ interface PDFPreviewCardProps {
 }
 
 export default function PDFPreviewCard({ pdf, pdfUrl, onDownload, onDelete }: PDFPreviewCardProps) {
-  const [imageError, setImageError] = useState(false);
-
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -41,36 +38,32 @@ export default function PDFPreviewCard({ pdf, pdfUrl, onDownload, onDelete }: PD
     });
   };
 
-  // Create thumbnail URL - we'll generate these server-side or use a placeholder
-  const thumbnailUrl = pdfUrl.replace('.pdf', '_thumbnail.png');
-
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {/* PDF Preview */}
-      <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative flex items-center justify-center">
-        {/* Simple embedded PDF viewer */}
-        <object
-          data={pdfUrl}
-          type="application/pdf"
-          className="w-full h-full"
-          aria-label={pdf.original_filename}
-        >
-          {/* Fallback if PDF doesn't render */}
-          <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-            <FileText className="w-16 h-16 text-gray-400 mb-3" />
-            <p className="text-sm font-medium text-gray-700">{pdf.original_filename.replace('.pdf', '')}</p>
-            <p className="text-xs text-gray-500 mt-1">Click download to view</p>
-          </div>
-        </object>
+      {/* PDF Preview - Simple visual with link */}
+      <a 
+        href={pdfUrl} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="block aspect-[3/4] bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden relative hover:from-blue-100 hover:to-purple-100 transition-colors"
+      >
+        <div className="flex flex-col items-center justify-center h-full p-6">
+          <FileText className="w-24 h-24 text-blue-600 mb-4" />
+          <p className="text-sm font-semibold text-gray-900 text-center line-clamp-3 px-2">
+            {pdf.original_filename.replace('.pdf', '')}
+          </p>
+          <p className="text-xs text-gray-600 mt-2">{formatFileSize(pdf.file_size)}</p>
+          <p className="text-xs text-blue-600 mt-3 font-medium">Click to view PDF →</p>
+        </div>
 
         {/* Badges */}
         {pdf.is_annotated && (
-          <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 z-10">
+          <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
             <FileCheck className="w-3 h-3" />
             Annotated
           </div>
         )}
-      </div>
+      </a>
 
       {/* Info Section */}
       <div className="p-4">
