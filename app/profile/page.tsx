@@ -158,12 +158,12 @@ export default function ProfilePage() {
     setSaving(false)
   }
 
-  const getAvatarUrl = (path: string | null) => {
+const getAvatarUrl = (path: string | null) => {
   if (!path) return null
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-  // Add timestamp to prevent caching
+  console.log('Avatar URL:', data.publicUrl) // Debug log
   return data.publicUrl + '?t=' + new Date().getTime()
-  }
+}
 
   if (loading) {
     return (
