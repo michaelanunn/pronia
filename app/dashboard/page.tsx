@@ -31,10 +31,10 @@ export default function Dashboard() {
   const [username, setUsername] = useState<string>('')
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-const [pieces, setPieces] = useState<Piece[]>([])
-const [showAddForm, setShowAddForm] = useState(false)
-const [editingPiece, setEditingPiece] = useState<string | null>(null)
-const [uploadingPieceId, setUploadingPieceId] = useState<string | null>(null)
+  const [pieces, setPieces] = useState<Piece[]>([])
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingPiece, setEditingPiece] = useState<string | null>(null)
+  const [uploadingPieceId, setUploadingPieceId] = useState<string | null>(null)
   
   // Search library state
   const [searchMode, setSearchMode] = useState<'library' | 'custom'>('library')
@@ -42,15 +42,15 @@ const [uploadingPieceId, setUploadingPieceId] = useState<string | null>(null)
   const [libraryResults, setLibraryResults] = useState<LibraryPiece[]>([])
   const [searching, setSearching] = useState(false)
   
-const [newPiece, setNewPiece] = useState({
-  title: '',
-  composer: '',
-  difficulty: 1,
-  status: 'learning',
-  notes: '',
-  pdfUrl: ''
-})
-const [uploadingPdf, setUploadingPdf] = useState(false)
+  const [newPiece, setNewPiece] = useState({
+    title: '',
+    composer: '',
+    difficulty: 1,
+    status: 'learning',
+    notes: '',
+    pdfUrl: ''
+  })
+  const [uploadingPdf, setUploadingPdf] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -492,12 +492,14 @@ const [uploadingPdf, setUploadingPdf] = useState(false)
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <h4 className="font-bold text-gray-900">{piece.title}</h4>
-<Link
-  href={`/composer/${piece.composer_id}`}
-  className="text-sm text-blue-600 hover:text-blue-800"
->
-  {piece.composer_name}
-</Link>                          </div>
+                            <Link
+                              href={`/composer/${piece.composer_id}`}
+                              className="text-sm text-blue-600 hover:text-blue-800"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {piece.composer_name}
+                            </Link>
+                          </div>
                           <div className="text-right">
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                               Level {piece.difficulty}
@@ -710,171 +712,75 @@ const [uploadingPdf, setUploadingPdf] = useState(false)
                 </div>
               </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Notes (optional)
-                  </label>
-                  <textarea
-                    value={newPiece.notes}
-                    onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={newPiece.notes}
+                  onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Upload annotated PDF (optional)
-                    </label>
-                    {newPiece.pdfUrl && (
-                      <a
-                        href={newPiece.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        View current PDF
-                      </a>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) handlePdfUpload(file)
-                    }}
-                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  {uploadingPdf && (
-                    <p className="text-sm text-gray-500">Uploading PDF...</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Upload annotated PDF (optional)
+                  </label>
+                  {newPiece.pdfUrl && (
+                    <a
+                      href={newPiece.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      View current PDF
+                    </a>
                   )}
                 </div>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handlePdfUpload(file)
+                  }}
+                  className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadingPdf && (
+                  <p className="text-sm text-gray-500">Uploading PDF...</p>
+                )}
+              </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-                >
-                  Update Piece
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Update Piece
               </button>
             </form>
           </div>
         )}
 
         {pieces.length === 0 ? (
-  <div className="bg-white rounded-lg shadow p-12 text-center">
-    <p className="text-gray-500 text-lg mb-4">
-      No pieces yet. Add your first piece to get started!
-    </p>
-  </div>
-) : (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-    {pieces.map((piece) => (
-      <SimplePieceCard
-        key={piece.id}
-        piece={piece}
-        onEdit={handleEditPiece}
-        onDelete={deletePiece}
-        onPdfUpload={handlePiecePdfUpload}
-        uploading={uploadingPieceId === piece.id}
-      />
-    ))}
-  </div>
-)}
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-gray-900 mb-1">
-                      {piece.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm">{piece.composer}</p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      deletePiece(piece.id)
-                    }}
-                    className="text-red-500 hover:text-red-700 text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-                
-                <div className="space-y-2 mt-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Difficulty:</span>
-                    <span className="font-medium">
-                      Level {piece.difficulty} - {difficultyLabels[piece.difficulty - 1]}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Status:</span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      piece.status === 'mastered' ? 'bg-green-100 text-green-800' :
-                      piece.status === 'learning' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {piece.status.charAt(0).toUpperCase() + piece.status.slice(1)}
-                    </span>
-                  </div>
-                  
-                  {piece.notes && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-sm text-gray-600 italic">{piece.notes}</p>
-                    </div>
-                  )}
-
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    {piece.pdf_url ? (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          window.open(piece.pdf_url || '#', '_blank', 'noopener,noreferrer')
-                        }}
-                        className="w-full flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800 hover:bg-blue-100 transition"
-                      >
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          <span className="font-semibold">Open PDF</span>
-                        </div>
-                        <span className="text-xs text-blue-700">Tap to view</span>
-                      </button>
-                    ) : (
-                      <div
-                        className="w-full rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50 transition cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          const input = document.getElementById(`pdf-upload-${piece.id}`) as HTMLInputElement | null
-                          input?.click()
-                        }}
-                      >
-                        <div className="flex items-center justify-between px-4 py-3">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <FileText className="w-4 h-4" />
-                            <span>No PDF attached yet</span>
-                          </div>
-                          <span className="text-sm font-semibold text-blue-700">
-                            {uploadingPieceId === piece.id ? 'Uploading...' : 'Upload PDF'}
-                          </span>
-                        </div>
-                        <input
-                          id={`pdf-upload-${piece.id}`}
-                          type="file"
-                          accept="application/pdf"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) handlePiecePdfUpload(piece.id, file)
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+          <div className="bg-white rounded-lg shadow p-12 text-center">
+            <p className="text-gray-500 text-lg mb-4">
+              No pieces yet. Add your first piece to get started!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {pieces.map((piece) => (
+              <SimplePieceCard
+                key={piece.id}
+                piece={piece}
+                onEdit={handleEditPiece}
+                onDelete={deletePiece}
+                onPdfUpload={handlePiecePdfUpload}
+                uploading={uploadingPieceId === piece.id}
+              />
             ))}
           </div>
         )}
