@@ -5,8 +5,8 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// CRITICAL: Use HTTPS explicitly
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface SheetMusicViewerProps {
   pdfUrl: string;
@@ -19,6 +19,11 @@ export default function SheetMusicViewer({ pdfUrl, title }: SheetMusicViewerProp
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
+    console.log('✅ Sheet music loaded:', title, 'Pages:', numPages);
+  }
+
+  function onDocumentLoadError(error: Error) {
+    console.error('❌ Sheet music error:', error.message);
   }
 
   return (
@@ -26,9 +31,20 @@ export default function SheetMusicViewer({ pdfUrl, title }: SheetMusicViewerProp
       <Document
         file={pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}
+        onLoadError={onDocumentLoadError}
         className="border rounded-lg shadow-lg"
+        options={{
+          cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
+          cMapPacked: true,
+          standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
+        }}
       >
-        <Page pageNumber={pageNumber} width={800} />
+        <Page 
+          pageNumber={pageNumber} 
+          width={800}
+          renderTextLayer={true}
+          renderAnnotationLayer={true}
+        />
       </Document>
       
       <div className="mt-4 flex items-center gap-4">
