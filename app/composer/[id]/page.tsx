@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { FileText } from 'lucide-react'
 
 interface Composer {
   id: string
@@ -162,6 +163,10 @@ export default function ComposerProfile() {
               </Link>
               <Link href="/metronome" className="text-gray-600 hover:text-gray-900">
                 Metronome
+              </Link>
+              <Link href="/my-pdfs" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                My PDFs
               </Link>
             </div>
           </div>

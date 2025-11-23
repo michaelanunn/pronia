@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { FileText } from 'lucide-react'
 
 interface Profile {
   id: string
@@ -186,6 +187,10 @@ export default function ProfilePage() {
               </Link>
               <Link href="/explore" className="text-gray-600 hover:text-gray-900">
                 Explore
+              </Link>
+              <Link href="/my-pdfs" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                My PDFs
               </Link>
             </div>
           </div>

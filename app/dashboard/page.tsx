@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { FileText } from 'lucide-react'
 
 interface Piece {
   id: string
@@ -13,6 +14,7 @@ interface Piece {
   status: string
   notes: string | null
   created_at: string
+  pdf_url?: string | null
 }
 
 interface LibraryPiece {
@@ -38,13 +40,15 @@ export default function Dashboard() {
   const [libraryResults, setLibraryResults] = useState<LibraryPiece[]>([])
   const [searching, setSearching] = useState(false)
   
-  const [newPiece, setNewPiece] = useState({
-    title: '',
-    composer: '',
-    difficulty: 1,
-    status: 'learning',
-    notes: ''
-  })
+const [newPiece, setNewPiece] = useState({
+  title: '',
+  composer: '',
+  difficulty: 1,
+  status: 'learning',
+  notes: '',
+  pdfUrl: ''
+})
+const [uploadingPdf, setUploadingPdf] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -162,6 +166,47 @@ export default function Dashboard() {
     }
   }
 
+  const handlePdfUpload = async (file: File) => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file.')
+      return
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      alert('File too large. Please upload a PDF under 25MB.')
+      return
+    }
+
+    try {
+      setUploadingPdf(true)
+      const filePath = `${user.id}/${Date.now()}-${file.name}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('scores')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'application/pdf'
+        })
+
+      if (uploadError) throw uploadError
+
+      const { data } = supabase.storage.from('scores').getPublicUrl(filePath)
+      const publicUrl = data?.publicUrl
+
+      setNewPiece((prev) => ({ ...prev, pdfUrl: publicUrl || '' }))
+    } catch (error: any) {
+      alert('Error uploading PDF: ' + error.message)
+    } finally {
+      setUploadingPdf(false)
+    }
+  }
+
   const handlePieceSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -173,7 +218,8 @@ export default function Dashboard() {
           composer: newPiece.composer,
           difficulty: newPiece.difficulty,
           status: newPiece.status,
-          notes: newPiece.notes
+          notes: newPiece.notes,
+          pdf_url: newPiece.pdfUrl || null
         })
         .eq('id', editingPiece)
       
@@ -202,7 +248,12 @@ export default function Dashboard() {
       const { error } = await supabase
         .from('pieces')
         .insert([{
-          ...newPiece,
+          title: newPiece.title,
+          composer: newPiece.composer,
+          difficulty: newPiece.difficulty,
+          status: newPiece.status,
+          notes: newPiece.notes,
+          pdf_url: newPiece.pdfUrl || null,
           user_id: user.id
         }])
       
@@ -221,7 +272,8 @@ export default function Dashboard() {
       composer: '',
       difficulty: 1,
       status: 'learning',
-      notes: ''
+      notes: '',
+      pdfUrl: ''
     })
     setEditingPiece(null)
     setShowAddForm(false)
@@ -236,7 +288,8 @@ export default function Dashboard() {
       composer: piece.composer,
       difficulty: piece.difficulty,
       status: piece.status,
-      notes: piece.notes || ''
+      notes: piece.notes || '',
+      pdfUrl: piece.pdf_url || ''
     })
     setEditingPiece(piece.id)
     setShowAddForm(true)
@@ -294,6 +347,10 @@ export default function Dashboard() {
               </Link>
               <Link href="/metronome" className="text-gray-600 hover:text-gray-900">
                 Metronome
+              </Link>
+              <Link href="/my-pdfs" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                My PDFs
               </Link>
               <Link href={`/u/${username}`} className="text-gray-600 hover:text-gray-900">
                 Profile
@@ -494,6 +551,36 @@ export default function Dashboard() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Upload annotated PDF (optional)
+                    </label>
+                    {newPiece.pdfUrl && (
+                      <a
+                        href={newPiece.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        View current PDF
+                      </a>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handlePdfUpload(file)
+                    }}
+                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  {uploadingPdf && (
+                    <p className="text-sm text-gray-500">Uploading PDF...</p>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
@@ -571,23 +658,53 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes (optional)
-                </label>
-                <textarea
-                  value={newPiece.notes}
-                  onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    value={newPiece.notes}
+                    onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
 
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-              >
-                Update Piece
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Upload annotated PDF (optional)
+                    </label>
+                    {newPiece.pdfUrl && (
+                      <a
+                        href={newPiece.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        View current PDF
+                      </a>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handlePdfUpload(file)
+                    }}
+                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  {uploadingPdf && (
+                    <p className="text-sm text-gray-500">Uploading PDF...</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  Update Piece
               </button>
             </form>
           </div>
@@ -647,6 +764,21 @@ export default function Dashboard() {
                   {piece.notes && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <p className="text-sm text-gray-600 italic">{piece.notes}</p>
+                    </div>
+                  )}
+
+                  {piece.pdf_url && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between text-sm">
+                      <span className="text-gray-600">PDF:</span>
+                      <a
+                        href={piece.pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Open score
+                      </a>
                     </div>
                   )}
                 </div>

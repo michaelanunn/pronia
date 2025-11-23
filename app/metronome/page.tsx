@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { FileText } from 'lucide-react'
 
 export default function Metronome() {
   const [bpm, setBpm] = useState(120)
@@ -110,20 +111,24 @@ export default function Metronome() {
               <Image src="/logo.png" alt="Pronia" width={32} height={32} />
               <h1 className="text-2xl font-bold text-gray-900">Pronia</h1>
             </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                Dashboard
-              </Link>
-              <Link href="/library" className="text-gray-600 hover:text-gray-900">
-                Library
-              </Link>
-              <Link href="/explore" className="text-gray-600 hover:text-gray-900">
-                Explore
-              </Link>
-            </div>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+              Dashboard
+            </Link>
+            <Link href="/library" className="text-gray-600 hover:text-gray-900">
+              Library
+            </Link>
+            <Link href="/explore" className="text-gray-600 hover:text-gray-900">
+              Explore
+            </Link>
+            <Link href="/my-pdfs" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              My PDFs
+            </Link>
           </div>
         </div>
-      </nav>
+      </div>
+    </nav>
 
       <main className="max-w-4xl mx-auto px-4 py-12">
         <div className="bg-white rounded-2xl shadow-xl p-8">

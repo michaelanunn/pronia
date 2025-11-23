@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import Image from 'next/image'
+import { FileText } from 'lucide-react'
 
 interface Profile {
   id: string
@@ -185,6 +186,10 @@ export default function Explore() {
               </Link>
               <Link href="/metronome" className="text-gray-600 hover:text-gray-900">
                 Metronome
+              </Link>
+              <Link href="/my-pdfs" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                My PDFs
               </Link>
               {currentUsername && (
                 <Link href={`/u/${currentUsername}`} className="text-gray-600 hover:text-gray-900">
