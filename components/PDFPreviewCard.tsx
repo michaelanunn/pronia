@@ -40,20 +40,20 @@ export default function PDFPreviewCard({ pdf, pdfUrl, onDownload, onDelete }: PD
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {/* PDF Preview - Simple visual with link */}
+      {/* PDF Preview - TEST WITH RED BACKGROUND */}
       <a 
         href={pdfUrl} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="block aspect-[3/4] bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden relative hover:from-blue-100 hover:to-purple-100 transition-colors"
+        className="block aspect-[3/4] bg-red-500 overflow-hidden relative"
       >
         <div className="flex flex-col items-center justify-center h-full p-6">
-          <FileText className="w-24 h-24 text-blue-600 mb-4" />
-          <p className="text-sm font-semibold text-gray-900 text-center line-clamp-3 px-2">
+          <FileText className="w-24 h-24 text-white mb-4" />
+          <p className="text-sm font-semibold text-white text-center line-clamp-3 px-2">
             {pdf.original_filename.replace('.pdf', '')}
           </p>
-          <p className="text-xs text-gray-600 mt-2">{formatFileSize(pdf.file_size)}</p>
-          <p className="text-xs text-blue-600 mt-3 font-medium">Click to view PDF →</p>
+          <p className="text-xs text-white mt-2">{formatFileSize(pdf.file_size)}</p>
+          <p className="text-xs text-white mt-3 font-medium">Click to view PDF →</p>
         </div>
 
         {/* Badges */}
