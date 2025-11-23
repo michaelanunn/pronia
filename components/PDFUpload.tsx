@@ -11,9 +11,11 @@ interface Composer {
 
 interface PDFUploadProps {
   onUploadComplete: () => void
+  pieceId?: string
+  pieceName?: string
 }
 
-export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
+export default function PDFUpload({ onUploadComplete, pieceId, pieceName }: PDFUploadProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [notes, setNotes] = useState('')
@@ -24,7 +26,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
   const [showComposerDropdown, setShowComposerDropdown] = useState(false)
   const supabase = createClientComponentClient()
 
-  // Fetch composers from the database
   useEffect(() => {
     fetchComposers()
   }, [])
@@ -65,7 +66,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Upload to storage
       const timestamp = Date.now()
       const fileName = `${user.id}/${timestamp}-${file.name}`
       
@@ -75,23 +75,22 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
 
       if (uploadError) throw uploadError
 
-      // Save to database
       const { error: dbError } = await supabase
         .from('user_pdfs')
         .insert({
           user_id: user.id,
           filename: `${timestamp}-${file.name}`,
-          original_filename: file.name,
+          original_filename: pieceName || file.name,
           file_path: fileName,
           file_size: file.size,
           notes: notes || null,
           is_annotated: isAnnotated,
-          composer_id: selectedComposer || null
+          composer_id: selectedComposer || null,
+          piece_id: pieceId || null
         })
 
       if (dbError) throw dbError
 
-      // Reset form
       setFile(null)
       setNotes('')
       setIsAnnotated(false)
@@ -114,7 +113,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
     <div className="bg-white rounded-lg border p-6">
       <h3 className="font-semibold text-lg mb-4">Upload PDF</h3>
 
-      {/* File Input */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select PDF File
@@ -155,7 +153,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
         </div>
       </div>
 
-      {/* Composer Search */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Link to Composer (Optional)
@@ -176,7 +173,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
             />
           </div>
 
-          {/* Selected Composer Display */}
           {selectedComposerData && (
             <div className="mt-2 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
               <span className="text-sm text-blue-900 font-medium">
@@ -194,7 +190,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
             </div>
           )}
 
-          {/* Dropdown */}
           {showComposerDropdown && composerSearch && !selectedComposer && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
               {filteredComposers.length > 0 ? (
@@ -221,7 +216,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
         </div>
       </div>
 
-      {/* Notes */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Notes (Optional)
@@ -235,7 +229,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
         />
       </div>
 
-      {/* Annotated Checkbox */}
       <div className="mb-4">
         <label className="flex items-center space-x-2 cursor-pointer">
           <input
@@ -248,7 +241,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
         </label>
       </div>
 
-      {/* Upload Button */}
       <button
         onClick={handleUpload}
         disabled={!file || uploading}
@@ -257,7 +249,6 @@ export default function PDFUpload({ onUploadComplete }: PDFUploadProps) {
         {uploading ? 'Uploading...' : 'Upload PDF'}
       </button>
 
-      {/* Close dropdown when clicking outside */}
       {showComposerDropdown && (
         <div
           className="fixed inset-0 z-0"
