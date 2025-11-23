@@ -116,9 +116,10 @@ export default function PDFUpload({
         setUploadComplete(false);
         setUploadProgress(0);
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Upload error:", err);
-      setError(err.message || "Failed to upload file");
+      const message = err instanceof Error ? err.message : "Failed to upload file";
+      setError(message);
     } finally {
       setUploading(false);
     }
@@ -268,7 +269,7 @@ export default function PDFUpload({
       {/* Mobile Instructions */}
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-500">
-          On mobile? Tap "Upload PDF" to choose from your device or use your camera to scan sheet music
+          On mobile? Tap &quot;Upload PDF&quot; to choose from your device or use your camera to scan sheet music
         </p>
       </div>
     </div>

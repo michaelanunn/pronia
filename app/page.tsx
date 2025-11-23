@@ -2,20 +2,21 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
 export default function Home() {
   const router = useRouter()
   const [checking, setChecking] = useState(true)
 
-  useEffect(() => {
-    checkSession()
-  }, [])
-
   const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
+    await supabase.auth.getSession()
     setChecking(false)
   }
+
+  useEffect(() => {
+    void (async () => {
+      await checkSession()
+    })()
+  }, [])
 
   const handleStartTracking = async () => {
     const { data: { session } } = await supabase.auth.getSession()

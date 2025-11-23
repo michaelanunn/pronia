@@ -24,13 +24,8 @@ export default function Library() {
   const [searchQuery, setSearchQuery] = useState('')
   const [difficultyFilter, setDifficultyFilter] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string } | null>(null)
   const router = useRouter()
-
-  useEffect(() => {
-    checkAuth()
-    loadLibrary()
-  }, [])
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -38,7 +33,7 @@ export default function Library() {
   }
 
   const loadLibrary = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('piece_library')
       .select('*')
       .order('title', { ascending: true })
@@ -48,6 +43,13 @@ export default function Library() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    void (async () => {
+      await checkAuth()
+      await loadLibrary()
+    })()
+  }, [])
 
   const addToRepertoire = async (piece: LibraryPiece) => {
     if (!user) {
@@ -224,7 +226,7 @@ export default function Library() {
 </Link>
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       {piece.musescore_url && piece.review_count > 0 && (
-                        
+                        <a
                           href={piece.musescore_url}
                           target="_blank"
                           rel="noopener noreferrer"

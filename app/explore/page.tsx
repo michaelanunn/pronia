@@ -50,28 +50,6 @@ export default function Explore() {
   const [loading, setLoading] = useState(true)
   const [currentUsername, setCurrentUsername] = useState<string>('')
 
-  useEffect(() => {
-    const loadCurrentUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single()
-        
-        if (profileData) {
-          setCurrentUsername(profileData.username)
-        }
-      }
-    }
-    
-    loadCurrentUser()
-    loadProfiles()
-    loadPieces()
-    loadComposers()
-  }, [])
-
   const loadProfiles = async () => {
     const { data: profilesData } = await supabase
       .from('profiles')
@@ -136,6 +114,30 @@ export default function Explore() {
       setComposers(composersWithCounts)
     }
   }
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (profileData) {
+          setCurrentUsername(profileData.username)
+        }
+      }
+    }
+    
+    void (async () => {
+      await loadCurrentUser()
+      await loadProfiles()
+      await loadPieces()
+      await loadComposers()
+    })()
+  }, [])
 
   const getAvatarUrl = (path: string | null) => {
     if (!path) return null
