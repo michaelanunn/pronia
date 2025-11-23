@@ -19,6 +19,7 @@ interface LibraryPiece {
   id: string
   title: string
   composer_name: string
+  composer_id: string
   difficulty: number
   form: string | null
 }
@@ -119,7 +120,7 @@ export default function Dashboard() {
     
     const { data } = await supabase
       .from('piece_library')
-      .select('id, title, composer_name, difficulty, form')
+      .select('id, title, composer_name, composer_id, difficulty, form')
       .or(`title.ilike.%${query}%,composer_name.ilike.%${query}%`)
       .limit(10)
 
@@ -183,6 +184,21 @@ export default function Dashboard() {
         loadPieces(user.id)
       }
     } else {
+      // Default: try to use library entry if it exists
+      const { data: libraryMatches } = await supabase
+        .from('piece_library')
+        .select('id, title, composer_name, composer_id, difficulty, form')
+        .ilike('title', newPiece.title)
+        .ilike('composer_name', newPiece.composer)
+        .limit(1)
+
+      const libraryMatch = libraryMatches?.[0]
+
+      if (libraryMatch) {
+        await addFromLibrary(libraryMatch as LibraryPiece)
+        return
+      }
+
       const { error } = await supabase
         .from('pieces')
         .insert([{
@@ -367,8 +383,12 @@ export default function Dashboard() {
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <h4 className="font-bold text-gray-900">{piece.title}</h4>
-                            <p className="text-sm text-gray-600">{piece.composer_name}</p>
-                          </div>
+<Link
+  href={`/composer/${piece.composer_id}`}
+  className="text-sm text-blue-600 hover:text-blue-800"
+>
+  {piece.composer_name}
+</Link>                          </div>
                           <div className="text-right">
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                               Level {piece.difficulty}

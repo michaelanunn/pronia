@@ -210,8 +210,13 @@ export default function Library() {
                     <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">
                       {piece.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">{piece.composer_name}</p>
-
+<Link
+  href={`/composer/${piece.composer_id}`}
+  onClick={(e) => e.stopPropagation()}
+  className="text-sm text-blue-600 hover:text-blue-800 mb-3 block"
+>
+  {piece.composer_name}
+</Link>
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       {piece.musescore_url && piece.review_count > 0 && (
                         
