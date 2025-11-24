@@ -1,13 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Trash2, Upload, FileText } from 'lucide-react'
-import { Document, Page, pdfjs } from 'react-pdf'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
-
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
 interface SimplePieceCardProps {
   piece: {
@@ -33,8 +27,8 @@ export default function SimplePieceCard({
   uploading 
 }: SimplePieceCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [pdfLoaded, setPdfLoaded] = useState(false)
-  const [pdfError, setPdfError] = useState(false)
+  const [iframeLoaded, setIframeLoaded] = useState(false)
+  const [iframeError, setIframeError] = useState(false)
 
   const handlePdfUploadClick = () => {
     const input = document.createElement('input')
@@ -60,21 +54,23 @@ export default function SimplePieceCard({
       {/* PDF Preview/Upload Area */}
       <div className="relative aspect-[3/4] bg-gray-50">
         {piece.pdf_url ? (
-          // Has PDF - show preview
+          // Has PDF - show preview with iframe
           <div 
             className="relative w-full h-full cursor-pointer group"
             onClick={viewPdf}
           >
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-              {!pdfLoaded && !pdfError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100">
+              {/* Loading state */}
+              {!iframeLoaded && !iframeError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-gradient-to-br from-blue-100 to-purple-100">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
                   <p className="text-sm text-gray-600">Loading preview...</p>
                 </div>
               )}
 
-              {pdfError ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              {/* Error fallback */}
+              {iframeError ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-100 to-purple-100">
                   <FileText className="w-20 h-20 text-blue-600 mb-3" />
                   <p className="text-sm font-semibold text-gray-900 text-center line-clamp-2 mb-2">
                     {piece.title}
@@ -82,34 +78,19 @@ export default function SimplePieceCard({
                   <p className="text-xs text-blue-600 font-medium">Click to view PDF →</p>
                 </div>
               ) : (
-                <Document
-                  file={piece.pdf_url}
-                  onLoadSuccess={() => {
-                    setPdfLoaded(true)
-                    setPdfError(false)
-                  }}
-                  onLoadError={() => {
-                    setPdfError(true)
-                    setPdfLoaded(false)
-                  }}
-                  loading={null}
-                  error={null}
-                  className="flex items-center justify-center"
-                >
-                  <Page
-                    pageNumber={1}
-                    width={280}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    loading={null}
-                    error={null}
-                  />
-                </Document>
+                // PDF iframe
+                <iframe
+                  src={`${piece.pdf_url}#page=1&view=FitH&toolbar=0&navpanes=0`}
+                  className="w-full h-full border-0 pointer-events-none"
+                  title={piece.title}
+                  onLoad={() => setIframeLoaded(true)}
+                  onError={() => setIframeError(true)}
+                />
               )}
             </div>
 
             {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center pointer-events-none">
               <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                 Click to open PDF
               </p>
@@ -117,7 +98,7 @@ export default function SimplePieceCard({
 
             {/* Delete PDF button */}
             {showDeleteConfirm ? (
-              <div className="absolute top-2 right-2 bg-white rounded-lg shadow-lg p-2 space-y-2 z-20">
+              <div className="absolute top-2 right-2 bg-white rounded-lg shadow-lg p-2 space-y-2 z-20 pointer-events-auto">
                 <p className="text-xs text-gray-700 mb-2">Delete PDF?</p>
                 <div className="flex gap-2">
                   <button
@@ -147,7 +128,7 @@ export default function SimplePieceCard({
                   e.stopPropagation()
                   setShowDeleteConfirm(true)
                 }}
-                className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-20"
+                className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-20 pointer-events-auto"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
