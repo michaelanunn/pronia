@@ -12,10 +12,6 @@ export const dynamic = 'force-dynamic'
 interface Piece {
   id: string
   title: string
-
-interface Piece {
-  id: string
-  title: string
   composer: string
   difficulty: number
   status: string
@@ -42,7 +38,6 @@ export default function Dashboard() {
   const [editingPiece, setEditingPiece] = useState<string | null>(null)
   const [uploadingPieceId, setUploadingPieceId] = useState<string | null>(null)
   
-  // Search library state
   const [searchMode, setSearchMode] = useState<'library' | 'custom'>('library')
   const [searchQuery, setSearchQuery] = useState('')
   const [libraryResults, setLibraryResults] = useState<LibraryPiece[]>([])
@@ -141,7 +136,6 @@ export default function Dashboard() {
   }
 
   const addFromLibrary = async (libraryPiece: LibraryPiece) => {
-    // Check if already added
     const { data: existing } = await supabase
       .from('pieces')
       .select('id')
@@ -288,7 +282,6 @@ export default function Dashboard() {
         loadPieces(user.id)
       }
     } else {
-      // Default: try to use library entry if it exists
       const { data: libraryMatches } = await supabase
         .from('piece_library')
         .select('id, title, composer_name, composer_id, difficulty, form')
@@ -410,9 +403,15 @@ export default function Dashboard() {
                 <FileText className="w-4 h-4" />
                 My PDFs
               </Link>
-              <Link href={`/u/${username}`} className="text-gray-600 hover:text-gray-900">
-                Profile
-              </Link>
+              {username ? (
+                <Link href={`/u/${username}`} className="text-gray-600 hover:text-gray-900">
+                  Profile
+                </Link>
+              ) : (
+                <Link href="/profile" className="text-gray-600 hover:text-gray-900">
+                  Profile
+                </Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
@@ -448,7 +447,6 @@ export default function Dashboard() {
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h3 className="text-xl font-bold mb-4">Add New Piece</h3>
             
-            {/* Search Library or Custom Toggle */}
             <div className="flex gap-2 mb-4">
               <button
                 onClick={() => setSearchMode('library')}
@@ -617,7 +615,7 @@ export default function Dashboard() {
                       Upload annotated PDF (optional)
                     </label>
                     {newPiece.pdfUrl && (
-                      <a
+                      
                         href={newPiece.pdfUrl}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -736,7 +734,7 @@ export default function Dashboard() {
                     Upload annotated PDF (optional)
                   </label>
                   {newPiece.pdfUrl && (
-                    <a
+                    
                       href={newPiece.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
