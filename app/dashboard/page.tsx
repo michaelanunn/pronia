@@ -9,6 +9,7 @@ import SimplePieceCard from '@/components/SimplePieceCard'
 
 export const dynamic = 'force-dynamic'
 
+
 interface Piece {
   id: string
   title: string
@@ -42,6 +43,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [libraryResults, setLibraryResults] = useState<LibraryPiece[]>([])
   const [searching, setSearching] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   const [newPiece, setNewPiece] = useState({
     title: '',
@@ -428,11 +430,14 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <Image src="/logo.png" alt="Pronia" width={32} height={32} />
-              <h1 className="text-2xl font-bold text-gray-900">Pronia</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Pronia</h1>
             </Link>
-            <div className="flex items-center gap-4">
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-4">
               <Link href="/library" className="text-gray-600 hover:text-gray-900">
                 Library
               </Link>
@@ -462,11 +467,88 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                 Logout
               </button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
+
+          {/* Mobile Menu Dropdown */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 border-t">
+              <div className="flex flex-col space-y-3">
+                <Link 
+                  href="/library" 
+                  className="text-gray-600 hover:text-gray-900 px-2 py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Library
+                </Link>
+                <Link 
+                  href="/explore" 
+                  className="text-gray-600 hover:text-gray-900 px-2 py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Explore
+                </Link>
+                <Link 
+                  href="/metronome" 
+                  className="text-gray-600 hover:text-gray-900 px-2 py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Metronome
+                </Link>
+                <Link 
+                  href="/my-pdfs" 
+                  className="text-gray-600 hover:text-gray-900 px-2 py-2 flex items-center gap-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FileText className="w-4 h-4" />
+                  My PDFs
+                </Link>
+                {username ? (
+                  <Link 
+                    href={`/u/${username}`} 
+                    className="text-gray-600 hover:text-gray-900 px-2 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                ) : (
+                  <Link 
+                    href="/profile" 
+                    className="text-gray-600 hover:text-gray-900 px-2 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    handleLogout()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="text-left text-gray-600 hover:text-gray-900 px-2 py-2"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">My Repertoire</h2>
@@ -575,7 +657,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
               </div>
             ) : (
               <form onSubmit={handlePieceSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Piece Title *
@@ -585,7 +667,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                       value={newPiece.title}
                       onChange={(e) => setNewPiece({...newPiece, title: e.target.value})}
                       placeholder="e.g., Nocturne in E-flat major"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -599,13 +681,13 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                       value={newPiece.composer}
                       onChange={(e) => setNewPiece({...newPiece, composer: e.target.value})}
                       placeholder="e.g., Frédéric Chopin"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Difficulty Level
@@ -613,7 +695,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                     <select
                       value={newPiece.difficulty}
                       onChange={(e) => setNewPiece({...newPiece, difficulty: parseInt(e.target.value)})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       {difficultyLabels.map((label, index) => (
                         <option key={index + 1} value={index + 1}>
@@ -630,7 +712,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                     <select
                       value={newPiece.status}
                       onChange={(e) => setNewPiece({...newPiece, status: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="learning">Currently Learning</option>
                       <option value="mastered">Mastered</option>
@@ -648,7 +730,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                     onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
                     placeholder="Practice notes, techniques to focus on, etc."
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -697,7 +779,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h3 className="text-xl font-bold mb-4">Edit Piece</h3>
             <form onSubmit={handlePieceSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Piece Title *
@@ -706,7 +788,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                     type="text"
                     value={newPiece.title}
                     onChange={(e) => setNewPiece({...newPiece, title: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -719,13 +801,13 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                     type="text"
                     value={newPiece.composer}
                     onChange={(e) => setNewPiece({...newPiece, composer: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Difficulty Level
@@ -733,7 +815,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                   <select
                     value={newPiece.difficulty}
                     onChange={(e) => setNewPiece({...newPiece, difficulty: parseInt(e.target.value)})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {difficultyLabels.map((label, index) => (
                       <option key={index + 1} value={index + 1}>
@@ -750,7 +832,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                   <select
                     value={newPiece.status}
                     onChange={(e) => setNewPiece({...newPiece, status: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="learning">Currently Learning</option>
                     <option value="mastered">Mastered</option>
@@ -767,7 +849,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                   value={newPiece.notes}
                   onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -835,3 +917,4 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
     </div>
   )
 }
+
