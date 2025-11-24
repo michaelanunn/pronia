@@ -54,7 +54,7 @@ export default function SimplePieceCard({
         {piece.pdf_url ? (
           // Has PDF - show clickable preview
           <div 
-            className="relative w-full h-full cursor-pointer group bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-colors"
+            className="relative w-full h-full cursor-pointer group bg-gradient-to-br from-blue-100 to-purple-100 hover:from-blue-200 hover:to-purple-200 transition-colors"
             onClick={viewPdf}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
