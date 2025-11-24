@@ -12,6 +12,7 @@ interface SimplePieceCardProps {
     status: string
     notes: string | null
     pdf_url?: string | null
+    thumbnail_url?: string | null
   }
   onEdit: (piece: any) => void
   onDelete: (id: string) => void
@@ -27,8 +28,7 @@ export default function SimplePieceCard({
   uploading 
 }: SimplePieceCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [iframeLoaded, setIframeLoaded] = useState(false)
-  const [iframeError, setIframeError] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   const handlePdfUploadClick = () => {
     const input = document.createElement('input')
@@ -54,40 +54,31 @@ export default function SimplePieceCard({
       {/* PDF Preview/Upload Area */}
       <div className="relative aspect-[3/4] bg-gray-50">
         {piece.pdf_url ? (
-          // Has PDF - show preview with iframe
+          // Has PDF - show thumbnail or fallback
           <div 
             className="relative w-full h-full cursor-pointer group"
             onClick={viewPdf}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100">
-              {/* Loading state */}
-              {!iframeLoaded && !iframeError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-gradient-to-br from-blue-100 to-purple-100">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-                  <p className="text-sm text-gray-600">Loading preview...</p>
-                </div>
-              )}
-
-              {/* Error fallback */}
-              {iframeError ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-100 to-purple-100">
-                  <FileText className="w-20 h-20 text-blue-600 mb-3" />
-                  <p className="text-sm font-semibold text-gray-900 text-center line-clamp-2 mb-2">
-                    {piece.title}
-                  </p>
-                  <p className="text-xs text-blue-600 font-medium">Click to view PDF →</p>
-                </div>
-              ) : (
-                // PDF iframe
-                <iframe
-                  src={`${piece.pdf_url}#page=1&view=FitH&toolbar=0&navpanes=0`}
-                  className="w-full h-full border-0 pointer-events-none"
-                  title={piece.title}
-                  onLoad={() => setIframeLoaded(true)}
-                  onError={() => setIframeError(true)}
+            {piece.thumbnail_url && !imageError ? (
+              // Show thumbnail image
+              <div className="relative w-full h-full">
+                <img
+                  src={piece.thumbnail_url}
+                  alt={piece.title}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
                 />
-              )}
-            </div>
+              </div>
+            ) : (
+              // Fallback to gradient + icon
+              <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col items-center justify-center p-6">
+                <FileText className="w-20 h-20 text-blue-600 mb-3" />
+                <p className="text-sm font-semibold text-gray-900 text-center line-clamp-2 mb-2">
+                  {piece.title}
+                </p>
+                <p className="text-xs text-blue-600 font-medium">Click to view PDF →</p>
+              </div>
+            )}
 
             {/* Hover overlay */}
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center pointer-events-none">

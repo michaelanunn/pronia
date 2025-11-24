@@ -209,11 +209,54 @@ export default function Dashboard() {
     }
   }
 
-  const handlePiecePdfUpload = async (pieceId: string, file: File) => {
-    if (!user) {
-      router.push('/login')
-      return
-    }
+const handlePiecePdfUpload = async (pieceId: string, file: File) => {
+  if (!user) {
+    router.push('/login')
+    return
+  }
+
+  if (file.type !== 'application/pdf') {
+    alert('Please upload a PDF file.')
+    return
+  }
+
+  if (file.size > 25 * 1024 * 1024) {
+    alert('File too large. Please upload a PDF under 25MB.')
+    return
+  }
+
+  try {
+    setUploadingPieceId(pieceId)
+
+    // Use API route for upload with thumbnail generation
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('userId', user.id)
+    formData.append('pieceId', pieceId)
+
+    const response = await fetch('/api/upload-pdf', {
+      method: 'POST',
+      body: formData
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) throw new Error(data.error)
+
+    // Update local state
+    setPieces((prev) =>
+      prev.map((p) => (p.id === pieceId ? { 
+        ...p, 
+        pdf_url: data.pdfUrl,
+        thumbnail_url: data.thumbnailUrl 
+      } : p))
+    )
+
+  } catch (error: any) {
+    alert('Error uploading PDF: ' + error.message)
+  } finally {
+    setUploadingPieceId(null)
+  }
 
     if (file.type !== 'application/pdf') {
       alert('Please upload a PDF file.')
