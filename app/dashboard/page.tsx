@@ -373,8 +373,8 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div className="text-lg text-gray-600">Loading...</div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="text-xl text-gray-600">Loading...</div>
         </div>
       </div>
     )
@@ -392,40 +392,40 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="Pronia" width={32} height={32} />
+            <Link href="/" className="flex items-center gap-3">
+              <Image src="/logo.png" alt="Pronia" width={36} height={36} />
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Pronia
               </h1>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-6">
-              <Link href="/library" className="text-gray-600 hover:text-blue-600 transition font-medium">
+            <div className="hidden lg:flex items-center gap-8">
+              <Link href="/library" className="text-gray-600 hover:text-blue-600 transition font-medium text-base">
                 Library
               </Link>
-              <Link href="/explore" className="text-gray-600 hover:text-blue-600 transition font-medium">
+              <Link href="/explore" className="text-gray-600 hover:text-blue-600 transition font-medium text-base">
                 Explore
               </Link>
-              <Link href="/metronome" className="text-gray-600 hover:text-blue-600 transition font-medium">
+              <Link href="/metronome" className="text-gray-600 hover:text-blue-600 transition font-medium text-base">
                 Metronome
               </Link>
-              <Link href="/my-pdfs" className="text-gray-600 hover:text-blue-600 transition font-medium flex items-center gap-2">
+              <Link href="/my-pdfs" className="text-gray-600 hover:text-blue-600 transition font-medium text-base flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 My PDFs
               </Link>
               {username ? (
-                <Link href={`/u/${username}`} className="text-gray-600 hover:text-blue-600 transition font-medium">
+                <Link href={`/u/${username}`} className="text-gray-600 hover:text-blue-600 transition font-medium text-base">
                   Profile
                 </Link>
               ) : (
-                <Link href="/profile" className="text-gray-600 hover:text-blue-600 transition font-medium">
+                <Link href="/profile" className="text-gray-600 hover:text-blue-600 transition font-medium text-base">
                   Profile
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:shadow-lg transition"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:shadow-lg transition"
               >
                 Logout
               </button>
@@ -437,9 +437,9 @@ export default function Dashboard() {
               className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <X className="w-7 h-7" />
               ) : (
-                <Menu className="w-6 h-6" />
+                <Menu className="w-7 h-7" />
               )}
             </button>
           </div>
@@ -474,7 +474,7 @@ export default function Dashboard() {
                   className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-lg transition font-medium text-lg flex items-center gap-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-5 h-5" />
                   My PDFs
                 </Link>
                 {username ? (
@@ -512,9 +512,9 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-10 sm:py-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mb-10">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mb-12">
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">My Repertoire</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">My Repertoire</h2>
             <p className="text-gray-600 mt-2 text-lg">{pieces.length} pieces total</p>
           </div>
           <button
@@ -533,13 +533,13 @@ export default function Dashboard() {
 
         {/* Add Form */}
         {showAddForm && !editingPiece && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 sm:p-8 mb-10 border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 sm:p-10 mb-12 border border-gray-200">
             <h3 className="text-2xl font-bold mb-6">Add New Piece</h3>
             
             <div className="flex gap-3 mb-6">
               <button
                 onClick={() => setSearchMode('library')}
-                className={`flex-1 py-4 sm:py-4 rounded-xl font-medium transition text-base ${
+                className={`flex-1 py-4 rounded-xl font-medium transition text-base ${
                   searchMode === 'library'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -549,7 +549,7 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={() => setSearchMode('custom')}
-                className={`flex-1 py-4 sm:py-4 rounded-xl font-medium transition text-base ${
+                className={`flex-1 py-4 rounded-xl font-medium transition text-base ${
                   searchMode === 'custom'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -569,36 +569,36 @@ export default function Dashboard() {
                     searchLibrary(e.target.value)
                   }}
                   placeholder="Search for a piece (e.g., Moonlight Sonata, Chopin)..."
-                  className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+                  className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-6"
                 />
 
-                {searching && <div className="text-center py-4">Searching...</div>}
+                {searching && <div className="text-center py-4 text-lg">Searching...</div>}
 
                 {libraryResults.length > 0 && (
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
                     {libraryResults.map((piece) => (
                       <div
                         key={piece.id}
                         onClick={() => addFromLibrary(piece)}
-                        className="p-4 border border-gray-200 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 cursor-pointer transition"
+                        className="p-5 border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 cursor-pointer transition"
                       >
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start gap-4">
                           <div className="flex-1">
-                            <h4 className="font-bold text-gray-900">{piece.title}</h4>
+                            <h4 className="font-bold text-gray-900 text-lg">{piece.title}</h4>
                             <Link
                               href={`/composer/${piece.composer_id}`}
-                              className="text-sm text-blue-600 hover:text-blue-800"
+                              className="text-sm text-blue-600 hover:text-blue-800 mt-1 inline-block"
                               onClick={(e) => e.stopPropagation()}
                             >
                               {piece.composer_name}
                             </Link>
                           </div>
                           <div className="text-right">
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full font-medium">
                               Level {piece.difficulty}
                             </span>
                             {piece.form && (
-                              <p className="text-xs text-gray-500 mt-1">{piece.form}</p>
+                              <p className="text-xs text-gray-500 mt-2">{piece.form}</p>
                             )}
                           </div>
                         </div>
@@ -608,11 +608,11 @@ export default function Dashboard() {
                 )}
 
                 {searchQuery.length >= 2 && !searching && libraryResults.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <p className="mb-2">No pieces found in library</p>
+                  <div className="text-center py-10 text-gray-500">
+                    <p className="mb-3 text-lg">No pieces found in library</p>
                     <button
                       onClick={() => setSearchMode('custom')}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-blue-600 hover:text-blue-800 font-medium text-base"
                     >
                       Add as custom piece instead →
                     </button>
@@ -644,7 +644,7 @@ export default function Dashboard() {
                       type="text"
                       value={newPiece.composer}
                       onChange={(e) => setNewPiece({...newPiece, composer: e.target.value})}
-                      placeholder="e.g., Frederic Chopin"
+                      placeholder="e.g., Frédéric Chopin"
                       className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
@@ -698,13 +698,13 @@ export default function Dashboard() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-700">
                       Upload annotated PDF (optional)
                     </label>
                     {newPiece.pdfUrl && (
-                      <a
+                      
                         href={newPiece.pdfUrl}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -721,7 +721,7 @@ export default function Dashboard() {
                       const file = e.target.files?.[0]
                       if (file) handlePdfUpload(file)
                     }}
-                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+                    className="w-full text-base text-gray-700 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer file:font-medium"
                   />
                   {uploadingPdf && (
                     <p className="text-sm text-gray-500">Uploading PDF...</p>
@@ -741,7 +741,7 @@ export default function Dashboard() {
 
         {/* Edit Form */}
         {showAddForm && editingPiece && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 sm:p-8 mb-10 border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 sm:p-10 mb-12 border border-gray-200">
             <h3 className="text-2xl font-bold mb-6">Edit Piece</h3>
             <form onSubmit={handlePieceSubmit} className="space-y-6">
               <div className="grid grid-cols-1 gap-6">
@@ -818,13 +818,13 @@ export default function Dashboard() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="block text-sm font-medium text-gray-700">
                     Upload annotated PDF (optional)
                   </label>
                   {newPiece.pdfUrl && (
-                    <a
+                    
                       href={newPiece.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -841,7 +841,7 @@ export default function Dashboard() {
                     const file = e.target.files?.[0]
                     if (file) handlePdfUpload(file)
                   }}
-                  className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+                  className="w-full text-base text-gray-700 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer file:font-medium"
                 />
                 {uploadingPdf && (
                   <p className="text-sm text-gray-500">Uploading PDF...</p>
@@ -860,8 +860,8 @@ export default function Dashboard() {
 
         {/* Pieces Grid */}
         {pieces.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-12 text-center border border-gray-200">
-            <p className="text-gray-500 text-lg mb-4">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-16 text-center border border-gray-200">
+            <p className="text-gray-500 text-xl mb-4">
               No pieces yet. Add your first piece to get started!
             </p>
           </div>
@@ -883,6 +883,3 @@ export default function Dashboard() {
     </div>
   )
 }
-
-
-
