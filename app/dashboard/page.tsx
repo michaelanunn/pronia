@@ -501,8 +501,8 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
 
           {/* Mobile Menu Dropdown */}
           {mobileMenuOpen && (
-            <div className="md:hidden pb-4">
-              <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 shadow-sm divide-y divide-gray-200">
+            <div className="md:hidden pb-3">
+              <div className="mt-2 rounded-lg border border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg divide-y divide-gray-100 max-h-[60vh] overflow-auto">
                 <div className="flex flex-col p-3 space-y-2">
                   <Link 
                     href="/library" 
