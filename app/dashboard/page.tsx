@@ -442,7 +442,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between min-h-[64px] py-3 gap-3 flex-wrap md:flex-nowrap">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 min-w-0 flex-1">
@@ -501,8 +501,8 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
 
           {/* Mobile Menu Dropdown */}
           {mobileMenuOpen && (
-            <div className="md:hidden pb-3">
-              <div className="mt-2 rounded-lg border border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg divide-y divide-gray-100 max-h-[60vh] overflow-auto">
+            <div className="md:hidden absolute inset-x-0 top-full pt-2">
+              <div className="rounded-lg border border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg divide-y divide-gray-100 max-h-[60vh] overflow-auto mx-4 sm:mx-6">
                 <div className="flex flex-col p-3 space-y-2">
                   <Link 
                     href="/library" 
