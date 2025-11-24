@@ -1,7 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Trash2, Upload, FileText } from 'lucide-react'
+import { Document, Page, pdfjs } from 'react-pdf'
+import 'react-pdf/dist/Page/AnnotationLayer.css'
+import 'react-pdf/dist/Page/TextLayer.css'
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
 interface SimplePieceCardProps {
   piece: {
@@ -27,6 +33,8 @@ export default function SimplePieceCard({
   uploading 
 }: SimplePieceCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [pdfLoaded, setPdfLoaded] = useState(false)
+  const [pdfError, setPdfError] = useState(false)
 
   const handlePdfUploadClick = () => {
     const input = document.createElement('input')
@@ -52,17 +60,59 @@ export default function SimplePieceCard({
       {/* PDF Preview/Upload Area */}
       <div className="relative aspect-[3/4] bg-gray-50">
         {piece.pdf_url ? (
-          // Has PDF - show clickable preview
+          // Has PDF - show preview
           <div 
-            className="relative w-full h-full cursor-pointer group bg-gradient-to-br from-blue-100 to-purple-100 hover:from-blue-200 hover:to-purple-200 transition-colors"
+            className="relative w-full h-full cursor-pointer group"
             onClick={viewPdf}
           >
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <FileText className="w-20 h-20 text-blue-600 mb-3" />
-              <p className="text-sm font-semibold text-gray-900 text-center line-clamp-2 mb-2">
-                {piece.title}
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+              {!pdfLoaded && !pdfError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                  <p className="text-sm text-gray-600">Loading preview...</p>
+                </div>
+              )}
+
+              {pdfError ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                  <FileText className="w-20 h-20 text-blue-600 mb-3" />
+                  <p className="text-sm font-semibold text-gray-900 text-center line-clamp-2 mb-2">
+                    {piece.title}
+                  </p>
+                  <p className="text-xs text-blue-600 font-medium">Click to view PDF →</p>
+                </div>
+              ) : (
+                <Document
+                  file={piece.pdf_url}
+                  onLoadSuccess={() => {
+                    setPdfLoaded(true)
+                    setPdfError(false)
+                  }}
+                  onLoadError={() => {
+                    setPdfError(true)
+                    setPdfLoaded(false)
+                  }}
+                  loading={null}
+                  error={null}
+                  className="flex items-center justify-center"
+                >
+                  <Page
+                    pageNumber={1}
+                    width={280}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    loading={null}
+                    error={null}
+                  />
+                </Document>
+              )}
+            </div>
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+              <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to open PDF
               </p>
-              <p className="text-xs text-blue-600 font-medium">Click to view PDF →</p>
             </div>
 
             {/* Delete PDF button */}
@@ -73,7 +123,7 @@ export default function SimplePieceCard({
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      // Actually delete the PDF here - you'll need to implement this
+                      // Implement PDF deletion here
                       setShowDeleteConfirm(false)
                     }}
                     className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
