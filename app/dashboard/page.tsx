@@ -389,8 +389,8 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <Image src="/logo.png" alt="Pronia" width={32} height={32} />
@@ -446,32 +446,32 @@ export default function Dashboard() {
 
           {/* Mobile Dropdown Menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden py-4 border-t border-gray-200 bg-white/95 backdrop-blur-md">
-              <div className="flex flex-col space-y-1">
+            <div className="lg:hidden py-6 border-t border-gray-200 bg-white/95 backdrop-blur-md">
+              <div className="flex flex-col space-y-2">
                 <Link 
                   href="/library" 
-                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-lg transition font-medium text-lg"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Library
                 </Link>
                 <Link 
                   href="/explore" 
-                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-lg transition font-medium text-lg"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Explore
                 </Link>
                 <Link 
                   href="/metronome" 
-                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-lg transition font-medium text-lg"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Metronome
                 </Link>
                 <Link 
                   href="/my-pdfs" 
-                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium flex items-center gap-2"
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-lg transition font-medium text-lg flex items-center gap-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <FileText className="w-4 h-4" />
@@ -480,7 +480,7 @@ export default function Dashboard() {
                 {username ? (
                   <Link 
                     href={`/u/${username}`} 
-                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-lg transition font-medium text-lg"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Profile
@@ -488,7 +488,7 @@ export default function Dashboard() {
                 ) : (
                   <Link 
                     href="/profile" 
-                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-6 py-4 rounded-lg transition font-medium text-lg"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Profile
@@ -499,7 +499,7 @@ export default function Dashboard() {
                     handleLogout()
                     setMobileMenuOpen(false)
                   }}
-                  className="text-left text-white bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 rounded-lg font-medium hover:shadow-lg transition"
+                  className="text-left text-white bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 rounded-lg font-medium hover:shadow-lg transition text-lg"
                 >
                   Logout
                 </button>
@@ -510,12 +510,12 @@ export default function Dashboard() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-10 sm:py-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mb-10">
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">My Repertoire</h2>
-            <p className="text-gray-600 mt-1">{pieces.length} pieces total</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">My Repertoire</h2>
+            <p className="text-gray-600 mt-2 text-lg">{pieces.length} pieces total</p>
           </div>
           <button
             onClick={() => {
@@ -525,7 +525,7 @@ export default function Dashboard() {
                 setShowAddForm(!showAddForm)
               }
             }}
-            className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
+            className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all transform hover:scale-105 text-lg"
           >
             {showAddForm ? 'Cancel' : '+ Add Piece'}
           </button>
@@ -533,13 +533,13 @@ export default function Dashboard() {
 
         {/* Add Form */}
         {showAddForm && !editingPiece && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 mb-8 border border-gray-200">
-            <h3 className="text-xl font-bold mb-4">Add New Piece</h3>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 sm:p-8 mb-10 border border-gray-200">
+            <h3 className="text-2xl font-bold mb-6">Add New Piece</h3>
             
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-3 mb-6">
               <button
                 onClick={() => setSearchMode('library')}
-                className={`flex-1 py-2 sm:py-3 rounded-lg font-medium transition ${
+                className={`flex-1 py-4 sm:py-4 rounded-xl font-medium transition text-base ${
                   searchMode === 'library'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -549,7 +549,7 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={() => setSearchMode('custom')}
-                className={`flex-1 py-2 sm:py-3 rounded-lg font-medium transition ${
+                className={`flex-1 py-4 sm:py-4 rounded-xl font-medium transition text-base ${
                   searchMode === 'custom'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -569,7 +569,7 @@ export default function Dashboard() {
                     searchLibrary(e.target.value)
                   }}
                   placeholder="Search for a piece (e.g., Moonlight Sonata, Chopin)..."
-                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+                  className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
                 />
 
                 {searching && <div className="text-center py-4">Searching...</div>}
@@ -620,8 +620,8 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-              <form onSubmit={handlePieceSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
+              <form onSubmit={handlePieceSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Piece Title *
@@ -631,7 +631,7 @@ export default function Dashboard() {
                       value={newPiece.title}
                       onChange={(e) => setNewPiece({...newPiece, title: e.target.value})}
                       placeholder="e.g., Nocturne in E-flat major"
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -644,14 +644,14 @@ export default function Dashboard() {
                       type="text"
                       value={newPiece.composer}
                       onChange={(e) => setNewPiece({...newPiece, composer: e.target.value})}
-                      placeholder="e.g., Frédéric Chopin"
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., Frederic Chopin"
+                      className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Difficulty Level
@@ -659,7 +659,7 @@ export default function Dashboard() {
                     <select
                       value={newPiece.difficulty}
                       onChange={(e) => setNewPiece({...newPiece, difficulty: parseInt(e.target.value)})}
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       {difficultyLabels.map((label, index) => (
                         <option key={index + 1} value={index + 1}>
@@ -676,7 +676,7 @@ export default function Dashboard() {
                     <select
                       value={newPiece.status}
                       onChange={(e) => setNewPiece({...newPiece, status: e.target.value})}
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="learning">Currently Learning</option>
                       <option value="mastered">Mastered</option>
@@ -693,8 +693,8 @@ export default function Dashboard() {
                     value={newPiece.notes}
                     onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
                     placeholder="Practice notes, techniques to focus on, etc."
-                    rows={3}
-                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={4}
+                    className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -730,7 +730,7 @@ export default function Dashboard() {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:shadow-xl transition-all transform hover:scale-105 text-lg"
                 >
                   Add Piece
                 </button>
@@ -741,10 +741,10 @@ export default function Dashboard() {
 
         {/* Edit Form */}
         {showAddForm && editingPiece && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 mb-8 border border-gray-200">
-            <h3 className="text-xl font-bold mb-4">Edit Piece</h3>
-            <form onSubmit={handlePieceSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 sm:p-8 mb-10 border border-gray-200">
+            <h3 className="text-2xl font-bold mb-6">Edit Piece</h3>
+            <form onSubmit={handlePieceSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Piece Title *
@@ -753,7 +753,7 @@ export default function Dashboard() {
                     type="text"
                     value={newPiece.title}
                     onChange={(e) => setNewPiece({...newPiece, title: e.target.value})}
-                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -766,13 +766,13 @@ export default function Dashboard() {
                     type="text"
                     value={newPiece.composer}
                     onChange={(e) => setNewPiece({...newPiece, composer: e.target.value})}
-                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Difficulty Level
@@ -780,7 +780,7 @@ export default function Dashboard() {
                   <select
                     value={newPiece.difficulty}
                     onChange={(e) => setNewPiece({...newPiece, difficulty: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {difficultyLabels.map((label, index) => (
                       <option key={index + 1} value={index + 1}>
@@ -797,7 +797,7 @@ export default function Dashboard() {
                   <select
                     value={newPiece.status}
                     onChange={(e) => setNewPiece({...newPiece, status: e.target.value})}
-                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="learning">Currently Learning</option>
                     <option value="mastered">Mastered</option>
@@ -813,8 +813,8 @@ export default function Dashboard() {
                 <textarea
                   value={newPiece.notes}
                   onChange={(e) => setNewPiece({...newPiece, notes: e.target.value})}
-                  rows={3}
-                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                  className="w-full px-5 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -850,7 +850,7 @@ export default function Dashboard() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:shadow-xl transition-all transform hover:scale-105 text-lg"
               >
                 Update Piece
               </button>
@@ -866,7 +866,7 @@ export default function Dashboard() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
             {pieces.map((piece) => (
               <SimplePieceCard
                 key={piece.id}
@@ -883,3 +883,6 @@ export default function Dashboard() {
     </div>
   )
 }
+
+
+
