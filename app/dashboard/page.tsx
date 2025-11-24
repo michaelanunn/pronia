@@ -7,6 +7,12 @@ import Image from 'next/image'
 import { FileText } from 'lucide-react'
 import SimplePieceCard from '@/components/SimplePieceCard'
 
+export const dynamic = 'force-dynamic'
+
+interface Piece {
+  id: string
+  title: string
+
 interface Piece {
   id: string
   title: string
