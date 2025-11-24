@@ -1,18 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { Trash2, Eye, Upload, AlertCircle } from 'lucide-react'
-import dynamic from 'next/dynamic'
-
-// Import react-pdf components with SSR disabled
-const Document = dynamic(
-  () => import('react-pdf').then((mod) => mod.Document),
-  { ssr: false }
-)
-const Page = dynamic(
-  () => import('react-pdf').then((mod) => mod.Page),
-  { ssr: false }
-)
+import { useState } from 'react'
+import { Trash2, Upload, FileText } from 'lucide-react'
 
 interface SimplePieceCardProps {
   piece: {
@@ -38,29 +27,6 @@ export default function SimplePieceCard({
   uploading 
 }: SimplePieceCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [numPages, setNumPages] = useState<number | null>(null)
-  const [pdfLoading, setPdfLoading] = useState(true)
-  const [pdfError, setPdfError] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
-
-  // Only run on client side
-  useEffect(() => {
-    setMounted(true)
-    
-    // Configure PDF.js worker on client side only
-    if (typeof window !== 'undefined') {
-      import('react-pdf').then((pdfjs) => {
-        pdfjs.pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.pdfjs.version}/build/pdf.worker.min.mjs`
-      })
-    }
-  }, [])
-
-  // Memoize options
-  const pdfOptions = useMemo(() => ({
-    cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
-    cMapPacked: true,
-    standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
-  }), [])
 
   const handlePdfUploadClick = () => {
     const input = document.createElement('input')
@@ -81,87 +47,33 @@ export default function SimplePieceCard({
     }
   }
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages)
-    setPdfLoading(false)
-    setPdfError(null)
-    console.log('✅ PDF loaded:', piece.title, 'Pages:', numPages)
-  }
-
-  const onDocumentLoadError = (error: Error) => {
-    console.error('❌ PDF error:', error.message)
-    setPdfLoading(false)
-    setPdfError('Failed to load')
-  }
-
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       {/* PDF Preview/Upload Area */}
       <div className="relative aspect-[3/4] bg-gray-50">
         {piece.pdf_url ? (
-          // Has PDF - render actual preview
+          // Has PDF - show clickable preview
           <div 
-            className="relative w-full h-full cursor-pointer group"
+            className="relative w-full h-full cursor-pointer group bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-colors"
             onClick={viewPdf}
           >
-            {pdfLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  <p className="text-sm text-gray-600">Loading...</p>
-                </div>
-              </div>
-            )}
-
-            {pdfError ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gray-50">
-                <AlertCircle className="w-12 h-12 text-red-400 mb-2" />
-                <p className="text-sm text-red-600 mb-1">Preview unavailable</p>
-                <p className="text-xs text-gray-500 mb-3">{pdfError}</p>
-                <p className="text-xs text-blue-600">Click to open PDF →</p>
-              </div>
-            ) : mounted ? (
-              <div className="relative w-full h-full flex items-center justify-center overflow-hidden z-0">
-                <Document
-                  file={piece.pdf_url}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  onLoadError={onDocumentLoadError}
-                  loading={null}
-                  error={null}
-                  options={pdfOptions}
-                >
-                  <Page
-                    pageNumber={1}
-                    width={280}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    loading={null}
-                    error={null}
-                    canvasProps={{
-                      style: {
-                        width: '280px',
-                        height: '399.5px',
-                        display: 'block'
-                      }
-                    }}
-                  />
-                </Document>
-              </div>
-            ) : null}
-            
-            {/* Overlay on hover - with pointer-events-none so it doesn't block canvas */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center pointer-events-none z-10">
-              <Eye className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <FileText className="w-20 h-20 text-blue-600 mb-3" />
+              <p className="text-sm font-semibold text-gray-900 text-center line-clamp-2 mb-2">
+                {piece.title}
+              </p>
+              <p className="text-xs text-blue-600 font-medium">Click to view PDF →</p>
             </div>
 
             {/* Delete PDF button */}
             {showDeleteConfirm ? (
-              <div className="absolute top-2 right-2 bg-white rounded-lg shadow-lg p-2 space-y-2 z-20 pointer-events-auto">
+              <div className="absolute top-2 right-2 bg-white rounded-lg shadow-lg p-2 space-y-2 z-20">
                 <p className="text-xs text-gray-700 mb-2">Delete PDF?</p>
                 <div className="flex gap-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
+                      // Actually delete the PDF here - you'll need to implement this
                       setShowDeleteConfirm(false)
                     }}
                     className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
@@ -185,7 +97,7 @@ export default function SimplePieceCard({
                   e.stopPropagation()
                   setShowDeleteConfirm(true)
                 }}
-                className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-20 pointer-events-auto"
+                className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-20"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
