@@ -137,6 +137,13 @@ export default function SimplePieceCard({
                     renderAnnotationLayer={false}
                     loading={null}
                     error={null}
+                    canvasProps={{
+                      style: {
+                        width: '280px',
+                        height: '399.5px',
+                        display: 'block'
+                      }
+                    }}
                   />
                 </Document>
               </div>

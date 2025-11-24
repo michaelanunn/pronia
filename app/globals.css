@@ -25,17 +25,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* PDF rendering styles */
-.react-pdf__Page {
-  max-width: 100%;
-  height: auto;
-}
-
+/* CRITICAL FIX - Override react-pdf's broken height: auto rule */
 .react-pdf__Page__canvas {
-  max-width: 100%;
-  height: auto !important;
+  height: 399.5px !important;
+  width: 280px !important;
+  display: block !important;
 }
