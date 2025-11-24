@@ -4,11 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText } from 'lucide-react'
+import { FileText, Menu, X } from 'lucide-react'
 import SimplePieceCard from '@/components/SimplePieceCard'
 
 export const dynamic = 'force-dynamic'
-
 
 interface Piece {
   id: string
@@ -19,6 +18,7 @@ interface Piece {
   notes: string | null
   created_at: string
   pdf_url?: string | null
+  thumbnail_url?: string | null
 }
 
 interface LibraryPiece {
@@ -38,12 +38,12 @@ export default function Dashboard() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingPiece, setEditingPiece] = useState<string | null>(null)
   const [uploadingPieceId, setUploadingPieceId] = useState<string | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   const [searchMode, setSearchMode] = useState<'library' | 'custom'>('library')
   const [searchQuery, setSearchQuery] = useState('')
   const [libraryResults, setLibraryResults] = useState<LibraryPiece[]>([])
   const [searching, setSearching] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   const [newPiece, setNewPiece] = useState({
     title: '',
@@ -57,14 +57,6 @@ export default function Dashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    // Restore mobile nav preference
-    if (typeof window !== 'undefined') {
-      const storedNav = localStorage.getItem('navExpanded')
-      if (storedNav !== null) {
-        setMobileMenuOpen(storedNav === 'true')
-      }
-    }
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         router.push('/login')
@@ -88,12 +80,6 @@ export default function Dashboard() {
 
     return () => subscription.unsubscribe()
   }, [router])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('navExpanded', mobileMenuOpen.toString())
-    }
-  }, [mobileMenuOpen])
 
   const checkOnboarding = async (userId: string) => {
     const { data } = await supabase
@@ -225,54 +211,11 @@ export default function Dashboard() {
     }
   }
 
-const handlePiecePdfUpload = async (pieceId: string, file: File) => {
-  if (!user) {
-    router.push('/login')
-    return
-  }
-
-  if (file.type !== 'application/pdf') {
-    alert('Please upload a PDF file.')
-    return
-  }
-
-  if (file.size > 25 * 1024 * 1024) {
-    alert('File too large. Please upload a PDF under 25MB.')
-    return
-  }
-
-  try {
-    setUploadingPieceId(pieceId)
-
-    // Use API route for upload with thumbnail generation
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('userId', user.id)
-    formData.append('pieceId', pieceId)
-
-    const response = await fetch('/api/upload-pdf', {
-      method: 'POST',
-      body: formData
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) throw new Error(data.error)
-
-    // Update local state
-    setPieces((prev) =>
-      prev.map((p) => (p.id === pieceId ? { 
-        ...p, 
-        pdf_url: data.pdfUrl,
-        thumbnail_url: data.thumbnailUrl 
-      } : p))
-    )
-
-  } catch (error: any) {
-    alert('Error uploading PDF: ' + error.message)
-  } finally {
-    setUploadingPieceId(null)
-  }
+  const handlePiecePdfUpload = async (pieceId: string, file: File) => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
 
     if (file.type !== 'application/pdf') {
       alert('Please upload a PDF file.')
@@ -428,8 +371,11 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="text-lg text-gray-600">Loading...</div>
+        </div>
       </div>
     )
   }
@@ -440,43 +386,46 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between min-h-[64px] py-3 gap-3 flex-wrap md:flex-nowrap">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      {/* Navigation */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 min-w-0 flex-1">
-              <Image src="/logo.png" alt="Pronia" width={28} height={28} className="flex-shrink-0" />
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">Pronia</h1>
+            <Link href="/" className="flex items-center gap-2">
+              <Image src="/logo.png" alt="Pronia" width={32} height={32} />
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Pronia
+              </h1>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-4">
-              <Link href="/library" className="text-gray-600 hover:text-gray-900">
+            <div className="hidden lg:flex items-center gap-6">
+              <Link href="/library" className="text-gray-600 hover:text-blue-600 transition font-medium">
                 Library
               </Link>
-              <Link href="/explore" className="text-gray-600 hover:text-gray-900">
+              <Link href="/explore" className="text-gray-600 hover:text-blue-600 transition font-medium">
                 Explore
               </Link>
-              <Link href="/metronome" className="text-gray-600 hover:text-gray-900">
+              <Link href="/metronome" className="text-gray-600 hover:text-blue-600 transition font-medium">
                 Metronome
               </Link>
-              <Link href="/my-pdfs" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+              <Link href="/my-pdfs" className="text-gray-600 hover:text-blue-600 transition font-medium flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 My PDFs
               </Link>
               {username ? (
-                <Link href={`/u/${username}`} className="text-gray-600 hover:text-gray-900">
+                <Link href={`/u/${username}`} className="text-gray-600 hover:text-blue-600 transition font-medium">
                   Profile
                 </Link>
               ) : (
-                <Link href="/profile" className="text-gray-600 hover:text-gray-900">
+                <Link href="/profile" className="text-gray-600 hover:text-blue-600 transition font-medium">
                   Profile
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:shadow-lg transition"
               >
                 Logout
               </button>
@@ -485,93 +434,87 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 flex-shrink-0"
-              aria-label="Toggle menu"
-              aria-expanded={mobileMenuOpen}
+              className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
 
-          {/* Mobile Menu Dropdown */}
+          {/* Mobile Dropdown Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden absolute inset-x-0 top-full pt-2">
-              <div className="rounded-lg border border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg divide-y divide-gray-100 max-h-[60vh] overflow-auto mx-4 sm:mx-6">
-                <div className="flex flex-col p-3 space-y-2">
+            <div className="lg:hidden py-4 border-t border-gray-200 bg-white/95 backdrop-blur-md">
+              <div className="flex flex-col space-y-1">
+                <Link 
+                  href="/library" 
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Library
+                </Link>
+                <Link 
+                  href="/explore" 
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Explore
+                </Link>
+                <Link 
+                  href="/metronome" 
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Metronome
+                </Link>
+                <Link 
+                  href="/my-pdfs" 
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium flex items-center gap-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FileText className="w-4 h-4" />
+                  My PDFs
+                </Link>
+                {username ? (
                   <Link 
-                    href="/library" 
-                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
+                    href={`/u/${username}`} 
+                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Library
+                    Profile
                   </Link>
+                ) : (
                   <Link 
-                    href="/explore" 
-                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
+                    href="/profile" 
+                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Explore
+                    Profile
                   </Link>
-                  <Link 
-                    href="/metronome" 
-                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Metronome
-                  </Link>
-                  <Link 
-                    href="/my-pdfs" 
-                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900 gap-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <FileText className="w-4 h-4" />
-                    My PDFs
-                  </Link>
-                  {username ? (
-                    <Link 
-                      href={`/u/${username}`} 
-                      className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Profile
-                    </Link>
-                  ) : (
-                    <Link 
-                      href="/profile" 
-                      className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Profile
-                    </Link>
-                  )}
-                </div>
-                <div className="p-3">
-                  <button
-                    onClick={() => {
-                      handleLogout()
-                      setMobileMenuOpen(false)
-                    }}
-                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
-                </div>
+                )}
+                <button
+                  onClick={() => {
+                    handleLogout()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="text-left text-white bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 rounded-lg font-medium hover:shadow-lg transition"
+                >
+                  Logout
+                </button>
               </div>
             </div>
           )}
         </div>
       </nav>
 
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="flex justify-between items-center mb-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">My Repertoire</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">My Repertoire</h2>
             <p className="text-gray-600 mt-1">{pieces.length} pieces total</p>
           </div>
           <button
@@ -582,36 +525,37 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                 setShowAddForm(!showAddForm)
               }
             }}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+            className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
           >
             {showAddForm ? 'Cancel' : '+ Add Piece'}
           </button>
         </div>
 
+        {/* Add Form */}
         {showAddForm && !editingPiece && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 mb-8 border border-gray-200">
             <h3 className="text-xl font-bold mb-4">Add New Piece</h3>
             
             <div className="flex gap-2 mb-4">
               <button
                 onClick={() => setSearchMode('library')}
-                className={`flex-1 py-2 rounded-lg font-medium transition ${
+                className={`flex-1 py-2 sm:py-3 rounded-lg font-medium transition ${
                   searchMode === 'library'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Search Library
               </button>
               <button
                 onClick={() => setSearchMode('custom')}
-                className={`flex-1 py-2 rounded-lg font-medium transition ${
+                className={`flex-1 py-2 sm:py-3 rounded-lg font-medium transition ${
                   searchMode === 'custom'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Add Custom Piece
+                Add Custom
               </button>
             </div>
 
@@ -625,7 +569,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                     searchLibrary(e.target.value)
                   }}
                   placeholder="Search for a piece (e.g., Moonlight Sonata, Chopin)..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
                 />
 
                 {searching && <div className="text-center py-4">Searching...</div>}
@@ -636,7 +580,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                       <div
                         key={piece.id}
                         onClick={() => addFromLibrary(piece)}
-                        className="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition"
+                        className="p-4 border border-gray-200 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 cursor-pointer transition"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -777,7 +721,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                       const file = e.target.files?.[0]
                       if (file) handlePdfUpload(file)
                     }}
-                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
                   />
                   {uploadingPdf && (
                     <p className="text-sm text-gray-500">Uploading PDF...</p>
@@ -786,7 +730,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
                 >
                   Add Piece
                 </button>
@@ -795,8 +739,9 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
           </div>
         )}
 
+        {/* Edit Form */}
         {showAddForm && editingPiece && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 mb-8 border border-gray-200">
             <h3 className="text-xl font-bold mb-4">Edit Piece</h3>
             <form onSubmit={handlePieceSubmit} className="space-y-4">
               <div className="grid grid-cols-1 gap-4">
@@ -896,7 +841,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
                     const file = e.target.files?.[0]
                     if (file) handlePdfUpload(file)
                   }}
-                  className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
                 />
                 {uploadingPdf && (
                   <p className="text-sm text-gray-500">Uploading PDF...</p>
@@ -905,7 +850,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
               >
                 Update Piece
               </button>
@@ -913,14 +858,15 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
           </div>
         )}
 
+        {/* Pieces Grid */}
         {pieces.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-12 text-center border border-gray-200">
             <p className="text-gray-500 text-lg mb-4">
               No pieces yet. Add your first piece to get started!
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {pieces.map((piece) => (
               <SimplePieceCard
                 key={piece.id}
@@ -937,4 +883,3 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
     </div>
   )
 }
-
