@@ -427,9 +427,9 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200">
+      <nav className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center min-h-[64px] py-3">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <Image src="/logo.png" alt="Pronia" width={32} height={32} />
@@ -471,7 +471,9 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="md:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 border border-gray-200"
+              aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -485,63 +487,67 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
 
           {/* Mobile Menu Dropdown */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t">
-              <div className="flex flex-col space-y-3">
-                <Link 
-                  href="/library" 
-                  className="text-gray-600 hover:text-gray-900 px-2 py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Library
-                </Link>
-                <Link 
-                  href="/explore" 
-                  className="text-gray-600 hover:text-gray-900 px-2 py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Explore
-                </Link>
-                <Link 
-                  href="/metronome" 
-                  className="text-gray-600 hover:text-gray-900 px-2 py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Metronome
-                </Link>
-                <Link 
-                  href="/my-pdfs" 
-                  className="text-gray-600 hover:text-gray-900 px-2 py-2 flex items-center gap-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FileText className="w-4 h-4" />
-                  My PDFs
-                </Link>
-                {username ? (
+            <div className="md:hidden pb-4">
+              <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 shadow-sm divide-y divide-gray-200">
+                <div className="flex flex-col p-3 space-y-2">
                   <Link 
-                    href={`/u/${username}`} 
-                    className="text-gray-600 hover:text-gray-900 px-2 py-2"
+                    href="/library" 
+                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Profile
+                    Library
                   </Link>
-                ) : (
                   <Link 
-                    href="/profile" 
-                    className="text-gray-600 hover:text-gray-900 px-2 py-2"
+                    href="/explore" 
+                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Profile
+                    Explore
                   </Link>
-                )}
-                <button
-                  onClick={() => {
-                    handleLogout()
-                    setMobileMenuOpen(false)
-                  }}
-                  className="text-left text-gray-600 hover:text-gray-900 px-2 py-2"
-                >
-                  Logout
-                </button>
+                  <Link 
+                    href="/metronome" 
+                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Metronome
+                  </Link>
+                  <Link 
+                    href="/my-pdfs" 
+                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900 gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FileText className="w-4 h-4" />
+                    My PDFs
+                  </Link>
+                  {username ? (
+                    <Link 
+                      href={`/u/${username}`} 
+                      className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                  ) : (
+                    <Link 
+                      href="/profile" 
+                      className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:text-gray-900"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                  )}
+                </div>
+                <div className="p-3">
+                  <button
+                    onClick={() => {
+                      handleLogout()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
           )}
