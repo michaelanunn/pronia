@@ -57,6 +57,14 @@ export default function Dashboard() {
   const router = useRouter()
 
   useEffect(() => {
+    // Restore mobile nav preference
+    if (typeof window !== 'undefined') {
+      const storedNav = localStorage.getItem('navExpanded')
+      if (storedNav !== null) {
+        setMobileMenuOpen(storedNav === 'true')
+      }
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         router.push('/login')
@@ -80,6 +88,12 @@ export default function Dashboard() {
 
     return () => subscription.unsubscribe()
   }, [router])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('navExpanded', mobileMenuOpen.toString())
+    }
+  }, [mobileMenuOpen])
 
   const checkOnboarding = async (userId: string) => {
     const { data } = await supabase
@@ -429,7 +443,7 @@ const handlePiecePdfUpload = async (pieceId: string, file: File) => {
     <div className="min-h-screen bg-gray-50">
       <nav className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between min-h-[64px] py-3 gap-3">
+          <div className="flex items-center justify-between min-h-[64px] py-3 gap-3 flex-wrap md:flex-nowrap">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 min-w-0 flex-1">
               <Image src="/logo.png" alt="Pronia" width={28} height={28} className="flex-shrink-0" />
