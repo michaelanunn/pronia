@@ -704,7 +704,7 @@ export default function Dashboard() {
                       Upload annotated PDF (optional)
                     </label>
                     {newPiece.pdfUrl && (
-                      
+                      <a
                         href={newPiece.pdfUrl}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -824,7 +824,7 @@ export default function Dashboard() {
                     Upload annotated PDF (optional)
                   </label>
                   {newPiece.pdfUrl && (
-                    
+                    <a
                       href={newPiece.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
