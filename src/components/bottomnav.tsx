@@ -1,6 +1,7 @@
+"use client";
+
 import { Home, Music2, PlayCircle, LayoutDashboard, User } from "lucide-react";
 import { NavLink } from "./NavLink";
-import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: Home, label: "Home", path: "/" },

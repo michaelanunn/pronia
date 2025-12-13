@@ -1,3 +1,5 @@
+"use client";
+
 import { ReactNode } from "react";
 import { TopBar } from "./TopBar";
 import { BottomNav } from "./BottomNav";

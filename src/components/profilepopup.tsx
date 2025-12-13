@@ -1,6 +1,8 @@
+"use client";
+
 import { X, User, Heart, BookMarked, FileText, Settings, LogOut, Library } from "lucide-react";
 import { Button } from "./ui/button";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 interface ProfilePopupProps {
   isOpen: boolean;
@@ -18,12 +20,12 @@ const menuItems = [
 ];
 
 export const ProfilePopup = ({ isOpen, onClose }: ProfilePopupProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   if (!isOpen) return null;
 
   const handleNavigation = (path: string) => {
-    navigate(path);
+    router.push(path);
     onClose();
   };
 

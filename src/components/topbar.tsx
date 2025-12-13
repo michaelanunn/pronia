@@ -1,3 +1,5 @@
+"use client";
+
 import { Flame, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
